@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import abc
 
-from AutoImageTimeSeries.app.common.search_space import SearchSpaceType
+#from AutoImageTimeSeries.app.common.search_space import SearchSpaceType
 
 class SearchSpaceType(Enum):
     IMAGE_TIME_SERIES = 'image_time_series'
@@ -23,12 +23,21 @@ class SearchSpace:
 class ConvLSTMSearchSpace(SearchSpace):
     BASE_ARCHITECTURE: tuple = field(default=('conv_lstm_2d'))
 
-    CONV_LSTM_BLOCKS_N_MIN: int = 1
-    CONV_LSTM_BLOCKS_N_MAX: int = 6
-    CONV_LSTM_FILTERS_BASE_MULTIPLIER: int = 16
+    CONV_LSTM_LAYERS_N_MIN: int = 1
+    CONV_LSTM_LAYERS_N_MAX: int = 6
+    CONV_LSTM_FILTERS_BASE_MULTIPLIER: int = 8
     CONV_LSTM_FILTERS_MIN: int = 1
     CONV_LSTM_FILTERS_MAX: int = 6
-    CONV_LSTM_FILTERS_SIZES: tuple = (7,7)    
+    CONV_LSTM_FILTERS_SIZES: tuple = (3,5,7)
+
+    NORMALIZATION_LAYER: tuple = (True, False)
+
+    CONV_2D_LAYERS_N_MIN: int = 1
+    CONV_2D_LAYERS_N_MAX: int = 5
+    CONV_2D_FILTERS_BASE_MUlTIPLIER: int = 8
+    CONV_2D_FILTERS_MIN: int = 1
+    CONV_2D_FILTERS_MAX: int = 6
+    CONV_2D_FILTERS_SIZES: int = (3,5,7)
     
     @staticmethod
     def get_type() -> SearchSpaceType:
