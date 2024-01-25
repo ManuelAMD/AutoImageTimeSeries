@@ -21,7 +21,7 @@ class SearchSpace:
 
 @dataclass(frozen=True)
 class ConvLSTMSearchSpace(SearchSpace):
-    BASE_ARCHITECTURE: tuple = field(default=('conv_lstm_2d'))
+    BASE_ARCHITECTURE: tuple = field(default=('conv_lstm_2d', "conv_lstm_2d"), hash= False)
 
     CONV_LSTM_LAYERS_N_MIN: int = 1
     CONV_LSTM_LAYERS_N_MAX: int = 6
@@ -32,7 +32,7 @@ class ConvLSTMSearchSpace(SearchSpace):
 
     NORMALIZATION_LAYER: tuple = (True, False)
 
-    CONV_2D_LAYERS_N_MIN: int = 1
+    CONV_2D_LAYERS_N_MIN: int = 0
     CONV_2D_LAYERS_N_MAX: int = 5
     CONV_2D_FILTERS_BASE_MUlTIPLIER: int = 8
     CONV_2D_FILTERS_MIN: int = 1

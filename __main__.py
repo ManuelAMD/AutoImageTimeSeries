@@ -5,3 +5,7 @@ if __name__ == '__main__':
     n = int(input("Type number: "))
     if n == 1:
         InitNodes().master()
+    elif n == 2:
+        InitNodes().worker()
+    else:
+        print("Write a valid number")

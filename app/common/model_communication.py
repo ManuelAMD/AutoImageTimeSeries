@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from app.common.arquitecture_parameters import *
 
-dataclass(frozen=True)
+@dataclass(frozen=False)
 class ModelTrainingRequest:
     id: int
     training_type: int

@@ -18,13 +18,13 @@ class ImageTimeSeriesArchitectureParameters(ModelArchitectureParameters):
     conv_lstm_layers_n: int
     #Per layer parameters
     conv_lstm_filters: List[int]
-    conv_lstm_filters_sizes: List[tuple(int, int)]
+    conv_lstm_filters_sizes: List[tuple[int, int]]
     
     normalization_layers: List[bool]
 
     cnn_layers_n: int
     cnn_filters: List[int]
-    cnn_filters_size: List[tuple(int, int)]
+    cnn_filters_size: List[tuple[int, int]]
 
     @staticmethod
     def new():
