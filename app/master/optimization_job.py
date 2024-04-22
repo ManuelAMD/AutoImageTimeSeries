@@ -64,7 +64,7 @@ class OptimizationJob:
         elif action == Action.FINISH:
             print("** Finished training **")
             best_model = self.optimization_strategy.get_best_model()
-            await self.log_results(best_model)
+            await self.log_results(best_model, self.optimization_strategy.get_best_exploration_ITS_model(), self.optimization_strategy.deep_training_models_completed)
             model = Model(best_model.model_training_request, self.dataset)
             model.is_model_valid()
             self.loop.stop()
@@ -84,6 +84,39 @@ class OptimizationJob:
         print("Model trianing request", model_training_request_dict)
         await self.rabbitmq_client.publish_model_params(model_training_request_dict)
 
-    async def log_results(self, best_model):
+    async def log_results(self, best_model, best_exploration_model, next_models):
+        print("-------------------------------------------------------------")
+        print(next_models)
         print("Finishing process")
-    
+        filename = best_model.model_training_request.experiment_id
+        f = open(filename, "a")
+        model_info_json = json.dumps(asdict(best_model))
+        f.write(model_info_json)
+        f.close()
+
+        print("Finished optimization")
+        print("besto model: ")
+        print(model_info_json)
+
+        elapsed_seconds = time.time() - self.start_time
+        elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_seconds))
+
+        time_text = "\n Optimization took: {} (hh:mm:ss), {} (Seconds)".format(elapsed_time, elapsed_seconds)
+        print(time_text)
+
+        f = open(filename, "a")
+        f.write(time_text)
+        f.close()
+
+        f = open(filename, "a")
+        model_info = json.dumps(asdict(best_exploration_model))
+        f.write(model_info)
+        f.close()
+
+        f = open(filename, "a")
+        for m in next_models[1:]:
+            model_info = json.dumps(asdict(m))
+            f.write(model_info)
+        f.close()
+
+        print("\n -------------------------------------------------------- \n")

@@ -45,7 +45,7 @@ class WorkerTraining:
     def train_model(info_dict: dict) -> float:
         dataset = info_dict['dataset']
         model_training_request = info_dict['model_request']
-        dataset.load()
+        dataset.load(model_training_request.window_size)
         model = Model(model_training_request, dataset)
         if info_dict['train_gpu'] == 1:
             return model.build_and_train()

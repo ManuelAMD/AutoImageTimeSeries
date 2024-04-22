@@ -21,6 +21,7 @@ class ImageTimeSeriesArchitectureParameters(ModelArchitectureParameters):
     conv_lstm_filters_sizes: List[tuple[int, int]]
     
     normalization_layers: List[bool]
+    window_size: int
 
     cnn_layers_n: int
     cnn_filters: List[int]
@@ -34,6 +35,7 @@ class ImageTimeSeriesArchitectureParameters(ModelArchitectureParameters):
             conv_lstm_filters = list(),
             conv_lstm_filters_sizes = list(),
             normalization_layers = list(),
+            window_size = 0,
             cnn_layers_n = 0,
             cnn_filters = list(),
             cnn_filters_size = list()

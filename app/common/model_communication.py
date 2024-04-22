@@ -14,6 +14,8 @@ class ModelTrainingRequest:
     search_space_type: str
     search_space_hash: str
     dataset_tag: str
+    horizon: int
+    window_size: int
 
     @classmethod
     def from_dict(cls, body_dict, model_arch: int):
@@ -29,8 +31,10 @@ class ModelTrainingRequest:
         _search_space_type = body_dict['search_space_type']
         _search_space_hash = body_dict['search_space_hash']
         _dataset_tag = body_dict['dataset_tag']
+        _horizon = body_dict["horizon"]
+        _window_size = body_dict['window_size']
         return cls(_id, _training_type, _experiment_id, _architecture, _epochs, _early_stopping_patience, 
-                   _is_partial_training, _search_space_type, _search_space_hash, _dataset_tag)
+                   _is_partial_training, _search_space_type, _search_space_hash, _dataset_tag, _horizon, _window_size)
     
 @dataclass
 class ModelTrainingResponse:

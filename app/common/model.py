@@ -5,11 +5,12 @@ from keras import layers
 from app.common.model_communication import *
 from app.dataset_files.dataset import *
 from app.common.search_space import *
+from app.common.model_evaluation import image_confussion_matrix
 import time
 import logging
 
-physical_devices = tf.config.list_physical_devices('GPU')
-print("_______ {} _______".format(physical_devices))
+#physical_devices = tf.config.list_physical_devices('GPU')
+#print("_______ {} _______".format(physical_devices))
 
 class Model:
     def __init__(self, model_training_request: ModelTrainingRequest, dataset: Dataset):
@@ -21,6 +22,7 @@ class Model:
         self.epochs = model_training_request.epochs
         self.early_stopping_patience = model_training_request.early_stopping_patience
         self.is_partial_training = model_training_request.is_partial_training
+        self.horizon = model_training_request.horizon
         self.model: tf.Keras.Model
         self.dataset:Dataset = dataset
 
@@ -60,7 +62,7 @@ class Model:
         #training_steps = self.dataset.get_training_steps()
         x_validation, y_validation = self.dataset.get_validation_data()
         #validation_steps = self.dataset.get_validation_steps()
-        x_test, y_validation = self.dataset.get_test_data()
+        x_test, y_test = self.dataset.get_test_data()
         def scheduler(epoch):
             if epoch < 10:
                 return 0.001
@@ -82,20 +84,41 @@ class Model:
         callbacks = [early_stopping, tensorboard, scheduler_callback]
         total_weights = np.sum([np.prod(v.get_shape().as_list()) for v in model.variables])
         print("Total model weights {}".format(total_weights))
-        print("****** Beggining the training ******")
-        history = model.fit(
-            x_train, y_train,
-            epochs = self.epochs,
-            #steps_per_epoch = training_steps,
-            validation_data = (x_validation, y_validation),
-            #validation_steps = validation_steps
-            verbose = 1
-        )
-        print("****** Training end ******")
-        did_finish_epochs = self._did_finish_epochs(history, self.epochs)
-        if self.search_space_type == SearchSpaceType.IMAGE_TIME_SERIES.value:
-            training_val = model.evaluate(x_test, y_validation, batch_size = 2, verbose = 0)
-            print("Model loss test: {}".format(training_val))
+        try:
+            print("****** Beggining the training ******")
+            history = model.fit(
+                x_train, y_train,
+                epochs = self.epochs,
+                batch_size = self.dataset.get_batch_size(),
+                #steps_per_epoch = training_steps,
+                validation_data = (x_validation, y_validation),
+                #validation_steps = validation_steps
+                callbacks = callbacks,
+                verbose = 1
+            )
+            print("****** Training end ******")
+            did_finish_epochs = self._did_finish_epochs(history, self.epochs)
+            if self.search_space_type == SearchSpaceType.IMAGE_TIME_SERIES.value:
+                ################ Realizar la estimación a multiples pasos ####################
+                print("FORMA DE LAS PRUEBAS: ", x_test.shape)
+                aux_test = x_test
+                #predictions = model.predict(x_test)
+                #print("FORMA DE LA PREDICCION: ", predictions.shape)
+                for i in range(self.horizon):
+                    preds = model.predict(aux_test)
+                    aux_test = self.add_last(aux_test, preds[:])
+                #new_predictions = self.add_last(x_test, predictions)
+                print("FORMA DE LA PREDICCION: ", aux_test.shape)
+                val = image_confussion_matrix(aux_test, x_test, y_test, self.horizon)
+                training_val = model.evaluate(x_test, y_test, batch_size = 2, verbose = 0)
+                print("Model loss test: {}".format(training_val))
+                print("Model F1-Score: {}".format(val))
+                training_val = val
+        except Exception as e:
+            print(e)
+            print("Cannot build and train the model, lack of memory")
+            training_val = 0
+            did_finish_epochs = False
         tf.keras.backend.clear_session()
         return training_val, did_finish_epochs
     
@@ -142,3 +165,15 @@ class Model:
             filters = model_parameters.cnn_filters[n]
             conv_size = model_parameters.cnn_filters_size[n]
             model.add(layers.Conv2D(filters, conv_size, padding= padding, activation= activation))
+
+    def add_last(self, data: np.ndarray, new_vals: np.ndarray):
+        print(data.shape)
+        x_test_new = data[:, 1:]
+        print(x_test_new.shape)
+        print(new_vals.shape)
+        l = []
+        for i in range(len(x_test_new)):
+            l.append(np.append(x_test_new[i], new_vals[i]))
+        x_test_new = np.array(l).reshape(data.shape[:])
+        print("CX", x_test_new.shape)
+        return x_test_new

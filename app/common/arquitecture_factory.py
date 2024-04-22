@@ -23,7 +23,7 @@ class ImageTimeSeriesArchitectureFactory(ModelArchitectureFactory):
         model_params.base_architecture = recommender.suggest_categorical('BASE_ARCHITECTURE', self.search_space.BASE_ARCHITECTURE)
         if model_params.base_architecture == 'conv_lstm_2d':
             model_params = self._generate_conv_lstm_based_architecture(input_dim, recommender, model_params)
-        
+        model_params.window_size = recommender.suggest_int("WINDOW_SIZE", self.search_space.WINDOW_SIZE_MIN, self.search_space.WINDOW_SIZE_MAX)
         print("-- Architecture parameters --")
         print(recommender.params)
         return model_params
@@ -32,6 +32,7 @@ class ImageTimeSeriesArchitectureFactory(ModelArchitectureFactory):
         model_params.conv_lstm_layers_n = recommender.suggest_int("CONV_LSTM_LAYERS_N", self.search_space.CONV_LSTM_LAYERS_N_MIN, self.search_space.CONV_LSTM_LAYERS_N_MAX)
         for n in range (0, model_params.conv_lstm_layers_n):
             tag = "CONV_LSTM_LAYERS_FILTERS_{}".format(n)
+            #Checar esta función
             filters = round(recommender.suggest_loguniform(tag, self.search_space.CONV_LSTM_FILTERS_MIN, self.search_space.CONV_LSTM_FILTERS_MAX))
             filters = filters * self.search_space.CONV_LSTM_FILTERS_BASE_MULTIPLIER
             model_params.conv_lstm_filters.append(filters)
@@ -43,7 +44,7 @@ class ImageTimeSeriesArchitectureFactory(ModelArchitectureFactory):
             model_params.normalization_layers.append(normalized)
         
         
-        model_params = self._generate_cnn_layer(recommender, model_params, input_dim[2])
+        #model_params = self._generate_cnn_layer(recommender, model_params, input_dim[2])
         return model_params
     
     def _generate_cnn_layer(self, recommender: optuna.Trial, model_params: ImageTimeSeriesArchitectureParameters, channels: int) -> ImageTimeSeriesArchitectureParameters:

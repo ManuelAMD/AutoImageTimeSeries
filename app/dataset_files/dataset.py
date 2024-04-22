@@ -6,6 +6,7 @@ from keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
 import cv2
 from app.common.load_imgs import *
+from app.common.color_tools import *
 
 #Abstract class.
 class Dataset(abc.ABC):
@@ -42,6 +43,10 @@ class Dataset(abc.ABC):
         pass
 
     @abc.abstractclassmethod
+    def get_batch_size(self) -> tuple:
+        pass
+
+    @abc.abstractclassmethod
     def get_classes_count(self) -> int:
         pass
 
@@ -59,8 +64,9 @@ class ImageTimeSeriesDataset(Dataset):
         self.data_size = data_size
         self.color_mode = color_mode
 
-    def load(self, init_route= None):
+    def load(self, window_size, init_route= None):
         try:
+            self.shape = (window_size, self.shape[1], self.shape[2], self.shape[3])
             train_split_float = np.float16(1.0 - self.validation_split_float)
             val_split_percent = int(self.validation_split_float * 100)
             train_split_percent = int(train_split_float * 100)
@@ -77,9 +83,19 @@ class ImageTimeSeriesDataset(Dataset):
             print(all_data.shape)
             with open(route + '/info.json') as jsonfile:
                 info = json.load(jsonfile)
-            classes = np.array(info['color_classes'])
+            self.categories = np.array(info['color_classes'])
             print(type(info['color_classes']))
+
+            all_data = np.array([gray_quantized(i, self.categories) for i in all_data])
+            colors_greys = get_colors(all_data[-50])
+            print("COLORSSSSSSS", colors_greys)
+            all_data = np.array([recolor_greys_image(img, self.categories) for img in all_data])
+            #all_data = all_data.astype('float32') / 255
+            #print("FLOATCOLORSSSS", all_data[-50])
+
+            
             all_cubes = self.agroup_window(all_data, self.shape[0]+1)
+            #all_cubes = self.agroup_window(all_data, window_size+1)
             print(all_cubes.shape)
             cubes, objectives = self.create_shifted_frames(all_cubes)
             print(cubes.shape, objectives.shape)
@@ -101,8 +117,7 @@ class ImageTimeSeriesDataset(Dataset):
             #--- Hacer una función al final con las estimaciones a solo 7 colores
             #ImageDataGenerator.flow_from_directory(
             #    route,
-            #    
-            #)
+            
         except:
             print("!!!!!!!! No se pudieron cargar los datos !!!!!!!")
             raise
@@ -150,6 +165,9 @@ class ImageTimeSeriesDataset(Dataset):
 
     def get_testing_steps(self):
         pass
+
+    def get_batch_size(self):
+        return self.batch_size
 
     def get_input_shape(self) -> tuple:
         return self.shape

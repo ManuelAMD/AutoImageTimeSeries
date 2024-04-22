@@ -20,7 +20,7 @@ class OptimizationStrategy(object):
                                                             storage=self.storage,
                                                             load_if_exists=True,
                                                             pruner=RepeatPruner(),
-                                                            direction='minimize',
+                                                            direction='maximize',
                                                             sampler=TPESampler(n_ei_candidates=5000, n_startup_trials=30))
         self.study_id = 0
 
@@ -67,7 +67,9 @@ class OptimizationStrategy(object):
             is_partial_training = True,
             search_space_type = self.search_space_type.value,
             search_space_hash = self.search_space_hash,
-            dataset_tag = self.dataset.get_tag()
+            dataset_tag = self.dataset.get_tag(),
+            horizon  = self.parameters['horizon'],
+            window_size = params.window_size
         )
         self.exploration_models_requests.append(model_training_request)
         return model_training_request
@@ -111,14 +113,14 @@ class OptimizationStrategy(object):
             return self._should_generate_hof()
         
     def _should_wait_exploration(self) -> bool:
-        print("Recieved exploration models {} / {}".format(self.exploration_models_completed, self.exploration_trials))
+        print("Recieved exploration models {} / {}".format(len(self.exploration_models_completed), self.exploration_trials))
         should_wait = True
         if len(self.exploration_models_requests) == len(self.exploration_models_completed):
             should_wait = False
         return should_wait
     
     def _should_wait_hof(self) -> bool:
-        print("Recieved hall of fame models {} / {}".format(self.deep_training_models_requests), self.hall_of_fame_size)
+        print("Recieved hall of fame models {} / {}".format(self.deep_training_models_requests, self.hall_of_fame_size))
         should_wait = True
         if len(self.deep_training_models_completed) == self.hall_of_fame_size:
             should_wait = False
@@ -136,7 +138,8 @@ class OptimizationStrategy(object):
     def _build_hall_of_fame_ITS(self):
         print("** Building hall of fame for ITS problem **")
         #If need to be the hihgest score, use reverse= True
-        stored_completed_models = sorted(self.exploration_models_completed, key= lambda completed_model: completed_model.performance)
+        #stored_completed_models = sorted(self.exploration_models_completed, key= lambda completed_model: completed_model.performance)
+        stored_completed_models = sorted(self.exploration_models_completed, key= lambda completed_model: completed_model.performance, reverse= True)
         self.hall_of_fame = stored_completed_models[0 : self.hall_of_fame_size]
         for model in self.hall_of_fame:
             print(model)
@@ -189,7 +192,7 @@ class OptimizationStrategy(object):
             return Action.GENERATE_MODEL
         elif self.should_wait():
             return Action.WAIT
-        elif not self._should_generate_hof and not self._should_wait_hof():
+        elif (not self._should_generate_hof() and not self._should_wait_hof()):
             return Action.FINISH
 
     def _register_completed_model(self, model_training_response: ModelTrainingResponse):
@@ -203,11 +206,13 @@ class OptimizationStrategy(object):
         self.exploration_models_completed.append(completed_model)
 
     def get_best_exploration_ITS_model(self):
-        best_model = min(self.exploration_models_completed, key= lambda completed_model: completed_model.performance)
+        #best_model = min(self.exploration_models_completed, key= lambda completed_model: completed_model.performance)
+        best_model = max(self.exploration_models_completed, key= lambda completed_model: completed_model.performance)
         return best_model
 
     def get_best_ITS_model(self):
-        best_model = min(self.deep_training_models_completed, key= lambda completed_model: completed_model.performance_2)
+        #best_model = min(self.deep_training_models_completed, key= lambda completed_model: completed_model.performance_2)
+        best_model = max(self.deep_training_models_completed, key= lambda completed_model: completed_model.performance_2)
         return best_model
 
     def _create_new_trial(self) -> optuna.Trial:
