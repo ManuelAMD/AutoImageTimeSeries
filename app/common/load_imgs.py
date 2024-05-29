@@ -11,6 +11,7 @@ def get_names(file: str):
 
 def load_imgs(data_folder: str, names_file: str, rows: int, cols: int, channels= 1, img_type= '.png', color_mode= 'grayscale'):
     names = get_names(names_file)
+    print(names)
     x = []
     for name in names:
         img = image.load_img('{}/{}{}'.format(data_folder, name, img_type), color_mode= color_mode, target_size= (rows, cols, channels))

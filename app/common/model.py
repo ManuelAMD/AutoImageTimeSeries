@@ -62,7 +62,7 @@ class Model:
         #training_steps = self.dataset.get_training_steps()
         x_validation, y_validation = self.dataset.get_validation_data()
         #validation_steps = self.dataset.get_validation_steps()
-        x_test, y_test = self.dataset.get_test_data()
+        
         def scheduler(epoch):
             if epoch < 10:
                 return 0.001
@@ -96,6 +96,11 @@ class Model:
                 callbacks = callbacks,
                 verbose = 1
             )
+            x_train = None
+            y_train = None
+            x_validation = None
+            y_validation = None
+            x_test, y_test = self.dataset.get_test_data()
             print("****** Training end ******")
             did_finish_epochs = self._did_finish_epochs(history, self.epochs)
             if self.search_space_type == SearchSpaceType.IMAGE_TIME_SERIES.value:
@@ -110,7 +115,7 @@ class Model:
                 #new_predictions = self.add_last(x_test, predictions)
                 print("FORMA DE LA PREDICCION: ", aux_test.shape)
                 val = image_confussion_matrix(aux_test, x_test, y_test, self.horizon)
-                training_val = model.evaluate(x_test, y_test, batch_size = 2, verbose = 0)
+                training_val = model.evaluate(x_test, y_test, batch_size = self.dataset.get_batch_size(), verbose = 0)
                 print("Model loss test: {}".format(training_val))
                 print("Model F1-Score: {}".format(val))
                 training_val = val

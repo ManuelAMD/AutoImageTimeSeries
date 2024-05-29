@@ -1,5 +1,5 @@
 import numpy as np
-cm_f = np.array([[25560351, 0, 0, 0, 3, 38, 452],
+"""cm_f = np.array([[25560351, 0, 0, 0, 3, 38, 452],
         [11, 16559007, 2999758, 36586, 2546, 392, 53],
         [9, 579167, 10972312, 833805, 59927, 18376, 367],
         [24, 20005, 372377, 2540684, 526205, 138326, 4805],
@@ -64,4 +64,24 @@ print(accuracy)
 
 macro_f1 = np.sum(f1_score)/len_categories
 
-print(macro_f1)
+print(macro_f1)"""
+
+import os
+import glob
+import csv
+import pandas
+
+path = "SPIReescale/"
+
+os.chdir(path)
+lista = glob.glob("*")
+lista.sort()
+print(lista)
+
+df = pandas.DataFrame(data={"names":lista})
+df.to_csv("NamesSPIDataset.csv", sep=',', index=False)
+
+
+#with open("NamesSPIDataset", "w", newline='') as myfile:
+#    wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+#    wr.writerow(list)

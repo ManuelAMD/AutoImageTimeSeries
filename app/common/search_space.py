@@ -24,21 +24,21 @@ class ConvLSTMSearchSpace(SearchSpace):
     BASE_ARCHITECTURE: tuple = field(default=('conv_lstm_2d', "conv_lstm_2d"), hash= False)
 
     CONV_LSTM_LAYERS_N_MIN: int = 1
-    CONV_LSTM_LAYERS_N_MAX: int = 8
+    CONV_LSTM_LAYERS_N_MAX: int = 6
     CONV_LSTM_FILTERS_BASE_MULTIPLIER: int = 2
     CONV_LSTM_FILTERS_MIN: int = 1
-    CONV_LSTM_FILTERS_MAX: int = 16
+    CONV_LSTM_FILTERS_MAX: int = 8
     CONV_LSTM_FILTERS_SIZES: tuple = (3,5,7)
 
     NORMALIZATION_LAYER: tuple = (True, False)
     WINDOW_SIZE_MIN: int = 4
-    WINDOW_SIZE_MAX: int = 20
+    WINDOW_SIZE_MAX: int = 9
 
     CONV_2D_LAYERS_N_MIN: int = 0
     CONV_2D_LAYERS_N_MAX: int = 5
     CONV_2D_FILTERS_BASE_MUlTIPLIER: int = 4
     CONV_2D_FILTERS_MIN: int = 1
-    CONV_2D_FILTERS_MAX: int = 16
+    CONV_2D_FILTERS_MAX: int = 8
     CONV_2D_FILTERS_SIZES: int = (3,5,7)
     
     @staticmethod

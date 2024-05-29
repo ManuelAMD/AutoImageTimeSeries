@@ -12,6 +12,9 @@ from keras import backend as K
 import gc
 import time
 from app.common.color_tools import *
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor
+from tqdm import tqdm
 
 class CustomCallback(Callback):
     def __init__(self, model, x_test):
@@ -58,17 +61,24 @@ def add_last(data, new_vals):
     print("CX", x_test_new.shape)
     return x_test_new
 
+def recolor(args):
+    data, pallete = args
+    res = gray_quantized(data, pallete)
+    res = recolor_greys_image(res, pallete)
+    return np.array(res)
+
+
 def limit_memory():
     """ Release unused memory resources. Force garbage collection """
     K.clear_session()
     gc.collect()
 
-window = 13
+window = 9
 channels = 1
-rows = 122
-cols = 360
+rows = 260
+cols = 640
 categorical = False
-categories = [0, 35, 70, 119, 177, 220, 255] #[0,51,102,153,204,255]
+categories = np.array([0, 35, 70, 119, 177, 220, 255]) #[0,51,102,153,204,255]
 horizon = 4
 name = 'Model_autoML_testing_{}'.format(int(time.time()))
 
@@ -107,13 +117,31 @@ if categorical:
     x = x_greys.astype('float32') / 255
 else:
     #x = np.load("Models/Data_full_select.npy")
-    x = np.load('Models/DroughtDatasetMask.npy').astype(np.uint8) #/255
-    x = np.array([gray_quantized(i, np.array(categories)) for i in x])
-    colors_greys = get_colors(x[1168])
-    print(colors_greys)
-    x_greys = np.array([recolor_greys_image(img, categories) for img in x])
+    x = np.load('Models/SPIDatasetMask.npy').astype(np.uint8) #/255
+
+    args = [(d, categories) for d in x]
+
+    num_cores = multiprocessing.cpu_count()
+    with ProcessPoolExecutor(max_workers=num_cores-4) as pool:
+        with tqdm(total = len(x)) as progress:
+            futures = []
+
+            for img in args:
+                future = pool.submit(recolor, img)
+                future.add_done_callback(lambda p: progress.update())
+                futures.append(future)
+            
+            results = []
+            for future in futures:
+                result = future.result()
+                results.append(result)
+    x_greys = np.array(results)
+    #x = np.array([gray_quantized(i, np.array(categories)) for i in x])
+    #colors_greys = get_colors(x[1168])
+    #print(colors_greys)
+    #x_greys = np.array([recolor_greys_image(img, categories) for img in x])
     x = x_greys.astype('float32') / 255
-    print(get_colors(x[1168]))
+    #print(get_colors(x[1168]))
 #x = np.load("Models/Data_full_select_greys.npy")
 print(x.shape)
 
@@ -170,7 +198,8 @@ np.save("Models/y_test_convlstm_greys_forecast.npy", y_test)
 #print("Displaying frames for example {}".format(data_choise))
 #plt.show()
 
-strategy = tf.distribute.MirroredStrategy()
+#strategy = tf.distribute.MirroredStrategy()
+strategy = tf.distribute.OneDeviceStrategy(device='/GPU:0')
 with strategy.scope():
     #Construction of Convolutional LSTM network
     print(*x_train.shape[2:])
@@ -187,10 +216,11 @@ with strategy.scope():
     #m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
     #m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
 
-    m = keras.layers.ConvLSTM2D(2, (3,3), padding= "same", return_sequences= True, activation= "relu")(inp)
-    m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(24, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
-    m = keras.layers.ConvLSTM2D(12, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(10, (7,7), padding= "same", return_sequences= True, activation= "relu")(inp)
+    #m = keras.layers.BatchNormalization()(m)
+    #m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    #m = keras.layers.BatchNormalization()(m)
+    #m = keras.layers.ConvLSTM2D(12, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.ConvLSTM2D(2, (5,5), padding= "same", activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
     #m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
@@ -211,7 +241,7 @@ with strategy.scope():
 
     #Define moifiable training hyperparameters
     epochs = 50
-    batch_size = 4
+    batch_size = 2
 
     #Model training
     model.fit(
@@ -219,7 +249,8 @@ with strategy.scope():
         batch_size= batch_size,
         epochs= epochs,
         validation_data= (x_validation, y_validation),
-        callbacks= [early_stopping, reduce_lr, board, CustomCallback(model, x_test)]
+        #callbacks= [early_stopping, reduce_lr, board, CustomCallback(model, x_test)]
+        callbacks= [reduce_lr]
     )
 
     example = x_test[np.random.choice(range(len(x_test)), size= 1)[0]]

@@ -7,6 +7,9 @@ import tensorflow as tf
 import cv2
 from app.common.load_imgs import *
 from app.common.color_tools import *
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor
+from tqdm import tqdm
 
 #Abstract class.
 class Dataset(abc.ABC):
@@ -86,10 +89,54 @@ class ImageTimeSeriesDataset(Dataset):
             self.categories = np.array(info['color_classes'])
             print(type(info['color_classes']))
 
-            all_data = np.array([gray_quantized(i, self.categories) for i in all_data])
+            """
+            def multi_process_recolor(data, pallete):
+                args = [(d, pallete) for d in data]
+                num_cores = multiprocessing.cpu_count()
+                with ProcessPoolExecutor(max_workers=num_cores-1) as pool:
+                    with tqdm(total = len(data)) as progress:
+                        futures = []
+
+                        for img in args:
+                            future = pool.submit(recolor, img)
+                            future.add_done_callback(lambda p: progress.update())
+                            futures.append(future)
+
+                        results = []
+                        for future in futures:
+                            result = future.result()
+                            results.append(result)
+
+                return np.array(results)
+            """
+
+            #all_data = np.array([gray_quantized(i, self.categories) for i in all_data])
+            #colors_greys = get_colors(all_data[-50])
+            #print("COLORSSSSSSS", colors_greys)
+
+            args = [(d, self.categories) for d in all_data]
+            #print("WELP!!", all_data[0].shape)
+            #print(args[0])
+            num_cores = multiprocessing.cpu_count()
+            with ProcessPoolExecutor(max_workers=num_cores-4) as pool:
+                with tqdm(total = len(all_data)) as progress:
+                    futures = []
+
+                    for img in args:
+                        future = pool.submit(ImageTimeSeriesDataset.recolor, img)
+                        future.add_done_callback(lambda p: progress.update())
+                        futures.append(future)
+                    
+                    results = []
+                    for future in futures:
+                        result = future.result()
+                        results.append(result)
+
+            all_data = np.array(results)
             colors_greys = get_colors(all_data[-50])
             print("COLORSSSSSSS", colors_greys)
-            all_data = np.array([recolor_greys_image(img, self.categories) for img in all_data])
+            
+            #all_data = np.array([recolor_greys_image(img, self.categories) for img in all_data])
             #all_data = all_data.astype('float32') / 255
             #print("FLOATCOLORSSSS", all_data[-50])
 
@@ -112,15 +159,27 @@ class ImageTimeSeriesDataset(Dataset):
             self.x_train_original = self.x_train_original[:-int(self.x_train_original.shape[0] * self.validation_split_float)]
             self.y_train_original = self.y_train_original[:-int(self.y_train_original.shape[0] * self.validation_split_float)]
             print(self.x_train_original.shape, self.y_train_original.shape)
+            all_cubes = None
+            cubes = None
+            objectives = None
             #--- Usar los datos directamente, 
             #--- Hacer una función con solo los 7 colores
             #--- Hacer una función al final con las estimaciones a solo 7 colores
             #ImageDataGenerator.flow_from_directory(
             #    route,
-            
+            print("DATA Suecessfully loaded!!!!")
         except:
             print("!!!!!!!! No se pudieron cargar los datos !!!!!!!")
             raise
+
+    def recolor(args):
+        data, pallete = args
+        #aux = []
+        #for i in data:
+        res = gray_quantized(data, pallete)
+        res = recolor_greys_image(res, pallete)
+        #aux.append(res)
+        return np.array(res)
 
     def agroup_window(self, data, window):
         new_data = [data[i:window+i] for i in range(len(data)-window+1)]
