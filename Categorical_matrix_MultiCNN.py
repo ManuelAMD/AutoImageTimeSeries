@@ -1,35 +1,14 @@
-import os
-
+import numpy as np
+from app.common.color_tools import *
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 from tqdm import tqdm
 
-from app.data_treatment.load_imgs import *
-import matplotlib.pyplot as plt
-from app.common.color_tools import *
-from sklearn.metrics import multilabel_confusion_matrix
-from PIL import Image
-
-def get_Positions(data, rows= 122, cols=360):
-    elements = []
-    for i in data:
-        ix = int(i/cols)
-        iy = int(np.round(((i/cols)-ix)*cols))
-        elements.append((ix,iy))
-    #print(index/cols)
-    #print((index/cols)-ix)
-    #print(((index/cols)-ix)*cols)
-    print("Posiciones!!! {} , {}".format(ix, iy))
-    return elements
-
-#Crea cubos con su propia información de tamaño h
 def get_cubes(data, h):
     new_data = []
     for i in range(0, len(data)-h):
         new_data.append(data[i:i+h])
-    new_data = np.array(new_data)
-    print(new_data.shape)
-    return new_data
+    return np.array(new_data)
 
 def recolor(args):
     data, pallete = args
@@ -46,17 +25,15 @@ def recolor(args):
     return np.array(aux)
 
 def evaluation(args):
-    test, pred, naive, l_clas = args
+    test, pred, naive, classes, l_clas = args
     f = np.zeros((l_clas, l_clas), dtype=np.uint64)
     n = np.zeros((l_clas, l_clas), dtype=np.uint64)
-    for k in range(test.shape[0]):
+    for k in range(4):
         for i in range(test.shape[1]):
             for j in range(test.shape[2]):
                 pos1 = np.where(classes == test[k, i, j])[0][0]
                 pos2 = np.where(classes == pred[k, i, j])[0][0]
                 pos3 = np.where(classes == naive[k, i, j])[0][0]
-                #print(np.where(classes == y_test[e, k, i, j]))
-                #print(pos1, pos2, pos3)
                 f[pos1, pos2] += 1
                 n[pos1, pos3] += 1
     return f, n
@@ -81,12 +58,12 @@ def multi_process_recolor(data, pallete):
 
     return np.array(results)
 
-def multi_process_evaluation(test, prediction, naive, l_clas):
+def multi_process_evaluation(test, prediction, naive, classes, l_clas):
     cm_f = np.zeros((l_clas, l_clas), dtype=np.uint64)
     cm_n = np.zeros((l_clas, l_clas), dtype=np.uint64)
     print(cm_f)
     res_lists = zip(test, prediction, naive)
-    args = [(t, p, n, l_clas) for (t, p, n) in res_lists]
+    args = [(t, p, n, classes, l_clas) for (t, p, n) in res_lists]
     num_cores = multiprocessing.cpu_count()
     with ProcessPoolExecutor(max_workers=num_cores-1) as pool:
         with tqdm(total= len(test)) as progress:
@@ -109,18 +86,15 @@ def multi_process_evaluation(test, prediction, naive, l_clas):
         cm_n = np.add(cm_n, result[1])
     return cm_f, cm_n
 
-classes = np.array([0, 255, 220, 177, 119, 70, 35]) # 255, 220, 177, 119, 70, 35  0
-
 def main():
-    
-    classes_rgb = np.array([[0,0,0], [35,35,35], [70,70,70], [119,119,119], [177,177,177], [220,220,220], [255,255,255]])
+    classes = np.array([0,255,220,177,119,70,35])
     rows = 122
     cols = 360
     h = 4
 
-    data = np.load("Models/PredictionsConvolutionLSTM_forecast_1.npy")
-    x_test = np.load("Models/x_test_convlstm_greys_forecast.npy") 
-    y_test = np.load("Models/y_test_convlstm_greys_forecast.npy")
+    data = np.load("Models/PredictionMultiCNN_forecast.npy")
+    x_test = np.load("Models/x_test_multicnn_greys.npy")
+    y_test = np.load("Models/y_test_multicnn_greys.npy")
 
     print(data.shape)
     print(x_test.shape)
@@ -128,92 +102,67 @@ def main():
 
     y_test = get_cubes(y_test, h)
 
+    print(y_test.shape)
     colors = get_colors(x_test[-10,0])
-    print("COLORSS", colors)
-    print("COLORS", colors.shape)
-
     colorss = get_colors(data[-10,0])
-    print("COLORSS", colorss)
+
+    print("Test colors", colors)
+    print("Prediction colors", colorss)
+    print("colors Shapes, test: {}, prediction: {}".format(colors.shape, colorss.shape))
+
+    #Eliminar para horizontes más de 1
+    #data = data.reshape((data.shape[0],1,*data.shape[1:]))
 
     naive = x_test[:-4]
     data = data[1:-3]
 
-    #y_real = y_test[:, -h:]*255
-    new_data = data[:, -h:]
-    n_real = naive[:, -h:]*255
+    prediction = data[:, -h:]
 
-    #y_test = y_test[:, -h:]
     naive = naive[:, -h:]
 
-    print("XX")
+    print("XXXXXXX")
     print(y_test.shape)
-    print(new_data.shape)
-    print(n_real.shape)
+    print(prediction.shape)
+    print(naive.shape)
 
-    print(min(new_data[0,0,60]))
-    print(max(new_data[0,0,60]))
+    print(min(prediction[0,0,60]))
+    print(max(prediction[0,0,60]))
 
-    new_data = new_data * 255
-    new_data = new_data.astype(np.uint8)
+    prediction = prediction * 255
+    prediction = prediction.astype(np.uint8)
 
-    print("HEY", new_data.shape)
+    print("HEYY", prediction.shape)
     print(colorss.shape)
-    print(min(new_data[0,0,60]))
-    print(max(new_data[0,0,60]))
+    print(min(prediction[0,0,60]))
+    print(max(prediction[0,0,60]))
 
-    new_data = new_data.reshape(new_data.shape[:-1])
-    print("HoY", new_data.shape)
-
-
-    """ Original
-    aux = []
-    print(type(new_data))
-    for i in new_data:
-        aux2 = []
-        for j in i:
-            #res = cv2.cvtColor(j, cv2.COLOR_GRAY2RGB)
-            #res = recolor_greys_image(j, classes)
-            #rgb_quantized(res, classes_rgb)
-            #res = cv2.cvtColor(res, cv2.COLOR_RGB2GRAY)
-            res = gray_quantized(j, classes)
-            res = recolor_greys_image(res, classes)
-            aux2.append(res)
-        aux.append(np.array(aux2))
-    new_data = np.array(aux)"""
-
-    new_data = multi_process_recolor(new_data, classes)
+    prediction = prediction.reshape(prediction.shape[:-1])
+    print("HOYYY", prediction.shape)
 
 
-    print("SHAPEE", new_data.shape)
-    color_data = get_colors(new_data[-10,0])
-    print("DCOLORS", color_data)
-    new_data = new_data.reshape(new_data.shape[0],new_data.shape[1],new_data.shape[2],new_data.shape[3],1)
+    prediction = multi_process_recolor(prediction, classes)
 
-    #y_test = y_test.reshape((y_test.shape[0], y_test.shape[1], y_test.shape[2]))*255
-    #naive = naive.reshape((naive.shape[0], naive.shape[1], naive.shape[2])) * 255
+    print("SHAPEEE", prediction.shape)
+    color_data = get_colors(prediction[-10,0])
+    print("PCOLORS", color_data)
+    prediction = prediction.reshape(*prediction.shape[:], 1)
+    print("SHAPEEE2", prediction.shape)
 
     plt.imshow(y_test[0,0], cmap="gray")
-    #plt.show()
-
-
-    plt.imshow(new_data[0,0], cmap="gray")
-    #plt.show()
-
-
+    plt.show()
+    plt.imshow(prediction[0,0], cmap="gray")
+    plt.show()
     plt.imshow(naive[0,0], cmap="gray")
-    #plt.show()
+    plt.show()
 
     y_test = y_test * 255
     naive = naive * 255
-    y_test = y_test.astype(np.uint8)
-    naive = naive.astype(np.uint8)
-    new_data = new_data.astype(np.uint8)
 
     print("YCOLORS", get_colors(y_test[-10,0]))
     print("NCOLORS", get_colors(naive[-10,0]))
 
     print("XS")
-    print(new_data.shape)
+    print(prediction.shape)
     print(y_test.shape)
     print(naive.shape)
 
@@ -230,58 +179,22 @@ def main():
         plt.imshow(y_test[pos,i], cmap='gray')
         plt.axis('off')
         plt.title('Original_t+{}'.format(i))
-        im = Image.fromarray(y_test[pos, i].reshape(rows, cols))
-        im.save("GeneratedImageComparation/Original_t+{}.png".format(i))
     for i in range(h):
         fig.add_subplot(r, c, ac)
         ac += 1
-        plt.imshow(new_data[pos,i], cmap='gray')
+        plt.imshow(prediction[pos,i], cmap='gray')
         plt.axis('off')
         plt.title('Pronóstico_t+{}'.format(i))
-        im = Image.fromarray(new_data[pos, i].reshape(rows, cols))
-        im.save("GeneratedImageComparation/Pronostico_t+{}.png".format(i))
     for i in range(h):
         fig.add_subplot(r, c, ac)
         ac += 1
         plt.imshow(naive[pos,i], cmap='gray')
         plt.axis('off')
         plt.title('Naive_t+{}'.format(i))
-        im = Image.fromarray(naive[pos, i].reshape(rows, cols))
-        im.save("GeneratedImageComparation/Naive_t+{}.png".format(i))
-
+        
     plt.show()
-    """
-    cm_f = np.zeros((l_clas, l_clas), dtype=np.uint64)
-    cm_n = np.zeros((l_clas, l_clas), dtype=np.uint64)
-    print(cm_f)
 
-    for e in range(y_test.shape[0]):
-        for k in range(h):
-            for i in range(rows):
-                for j in range(cols):
-                    pos1 = np.where(classes == y_test[e, k, i, j])[0][0]
-                    pos2 = np.where(classes == new_data[e, k, i, j])[0][0]
-                    pos3 = np.where(classes == naive[e, k, i, j])[0][0]
-                    #print(np.where(classes == y_test[e, k, i, j]))
-                    #print(pos1, pos2, pos3)
-                    cm_f[pos1, pos2] += 1
-                    cm_n[pos1, pos3] += 1"""
-    """ Original funcional
-    cm_f = np.zeros((l_clas, l_clas), dtype=np.uint64)
-    cm_n = np.zeros((l_clas, l_clas), dtype=np.uint64)
-    print(cm_f)
-
-    for e in range(y_test.shape[0]):
-        for k in range(h):
-            for i in range(rows):
-                for j in range(cols):
-                    pos1 = np.where(classes == y_test[e, k, i, j])[0][0]
-                    pos2 = np.where(classes == new_data[e, k, i, j])[0][0]
-                    pos3 = np.where(classes == naive[e, k, i, j])[0][0]
-                    cm_f[pos1, pos2] += 1
-                    cm_n[pos1, pos3] += 1
-    """
-    cm_f, cm_n = multi_process_evaluation(y_test, new_data, naive, l_clas)
+    cm_f, cm_n = multi_process_evaluation(y_test, prediction, naive, classes, l_clas)
     print("Matriz de confusión de pronóstico")
     print(cm_f)
 
@@ -417,6 +330,7 @@ def main():
     macro_f1 = np.sum(f1_score)/len_categories
 
     print(macro_f1)
+
 
 if __name__ == "__main__":
     main()
