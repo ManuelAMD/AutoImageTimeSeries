@@ -92,9 +92,14 @@ def main():
     cols = 360
     h = 4
 
-    data = np.load("Models/PredictionMultiCNN_forecast.npy")
-    x_test = np.load("Models/x_test_multicnn_greys.npy")
-    y_test = np.load("Models/y_test_multicnn_greys.npy")
+    data = np.load("Models/PredictionsTransformers.npy")
+    x_test = np.load("Models/x_test_transformer_greys_forecast.npy")
+    y_test = np.load("Models/y_test_transformer_greys_forecast.npy")
+
+    plt.imshow(y_test[0], cmap="gray")
+    plt.show()
+    plt.imshow(data[0,0], cmap="gray")
+    plt.show()
 
     print(data.shape)
     print(x_test.shape)

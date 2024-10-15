@@ -1,7 +1,10 @@
 numpy>=1.19.4
 opencv-python>=4.9.0
 #tensorflow[-and-cuda]==2.15.0
+#tensorflow>=2.15.0
+tensorflow
 #keras==2.15.0
+keras-nightly
 optuna>=2.3.0
 aio_pika>=6.7.1
 aiohttp>=3.7.3

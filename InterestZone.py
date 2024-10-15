@@ -5,13 +5,14 @@ from PIL import Image
 import app.common.load_imgs as li
 
 def load_and_prepare_all_data(rows= 122, cols= 360, channels= 1):
-    x = li.load_imgs("app/datasets/SPIReescale", "NamesSPIDataset.csv", rows, cols, img_type="")
+    x = li.load_imgs("app/datasets/DroughtDatasetSelect", "NamesDroughtDataset.csv", rows, cols, img_type="")
     x = x.astype('float32')
     x = x.reshape(len(x), rows, cols, channels)
     print('Data shape: {}'.format(x.shape))
     return x
 
-x = load_and_prepare_all_data(260, 640)
+#x = load_and_prepare_all_data(260, 640)
+x = load_and_prepare_all_data()
 
 x = x.reshape(x.shape[0:-1])
 #x = x.astype("int32")
@@ -53,7 +54,7 @@ aux = new_x[0]
 #plt.imshow(img, cmap="gray")
 #plt.show()
 
-names = li.get_names("NamesSPIDataset.csv")
+names = li.get_names("NamesDroughtDataset.csv")
 index = 0
 
 new_array = np.array([])
@@ -63,10 +64,10 @@ for i in new_x:
     new_array = np.append(new_array, img_new)
     im = Image.fromarray(img_new)
     im = im.convert("RGB")
-    im.save("app/datasets/SPIReescaleMask/{}.png".format(names[index]))
+    #im.save("app/datasets/SPIReescaleMask/{}.png".format(names[index]))
     index += 1
 
 new_array = new_array.reshape(x.shape)
 print(new_array.shape)
 
-np.save("Models/SPIDatasetMask", x)
+np.save("Models/DroughtDatasetMask", new_array)
