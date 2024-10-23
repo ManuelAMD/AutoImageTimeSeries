@@ -228,7 +228,8 @@ def main(forecast_path, config_file, h: int, display= False):
     #data = data [1: -(horizon-1)]
     #data = data[horizon :]
     #De todos los datos solo se toman los datos pronosticados, los últimos h
-    data = data[:, -horizon:]
+    #data = data[:, -horizon:]
+    data = data[:, :horizon]
 
     #naive = naive[:, -horizon:]
     aux_naive = []
@@ -348,10 +349,13 @@ def main(forecast_path, config_file, h: int, display= False):
 
 
     df_combinado = pd.concat([df_err_pronostico, df_err_naive, df_cm_f, df_cm_res_f, df_cm_conclusion_f, df_cm_n, df_cm_res_n, df_cm_conclusion_n], axis= 1)
-    df_combinado.to_excel('Models/'+forecast_path[:-4]+'_h_'+str(horizon)+'.xlsx', index= False)
+    df_combinado.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_h_'+str(horizon)+'.xlsx', index= False)
 
 
 
 if __name__ == "__main__":
     for i in range(12):
-        main('DroughtDataset_model_testing_1729234966.npy', 'Conv-LSTM_1.json', (i+1), False)
+        #main('DroughtDataset_model_testing_1729628349.npy', 'Conv-LSTM_1.json', (i+1), False)
+        #main('DroughtDataset_model_testing_1729610512.npy', 'Conv-LSTM_1.json', (i+1), False)
+        #main('DroughtDataset_model_testing_1729613412.npy', 'Conv-LSTM_1.json', (i+1), False)
+        main('DroughtDataset_model_testing_1729619966.npy', 'Conv-LSTM_1.json', (i+1), False)

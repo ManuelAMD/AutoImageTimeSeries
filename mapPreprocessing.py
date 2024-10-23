@@ -203,9 +203,10 @@ class Preprocessing:
 
 if __name__ == '__main__':
     names_file_path = 'NamesDroughtDataset.csv'
-    #p = Preprocessing('app/datasets/DroughtDataset', 'app/datasets/DroughtDatasetMainland')
-    #p.load_data(480,640, names_file_path)
-    #p.crop_images(240, 318, 600, 438)
+    #Recortar la zona de interes
+    p = Preprocessing('app/datasets/DroughtDataset', 'app/datasets/DroughtDatasetMainland')
+    p.load_data(480,640, names_file_path)
+    p.crop_images(240, 318, 600, 438)
 
     p = Preprocessing('app/datasets/DroughtDatasetMainland', 'app/datasets/DroughtDatasetMainland')
     p.load_data(120,360, names_file_path)
