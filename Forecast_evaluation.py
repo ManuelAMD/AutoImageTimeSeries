@@ -79,9 +79,9 @@ def multi_process_recolor(data, pallete):
 
     return np.array(results)
 
-def multi_process_evaluation(test, prediction, naive, l_clas, classes):
-    cm_f = np.zeros((l_clas, l_clas), dtype=np.uint64)
-    cm_n = np.zeros((l_clas, l_clas), dtype=np.uint64)
+def multi_process_evaluation(test, prediction, naive, cm_f, cm_n, l_clas, classes):
+    #cm_f = np.zeros((l_clas, l_clas), dtype=np.uint64)
+    #cm_n = np.zeros((l_clas, l_clas), dtype=np.uint64)
     print(cm_f)
     res_lists = zip(test, prediction, naive)
     args = [(t, p, n, l_clas, classes) for (t, p, n) in res_lists]
@@ -121,9 +121,18 @@ def calculate_errors(y_true, y_pred):
             RMSE += root_mean_squared_error(y_true[i,j], y_pred[i,j])
 
     cant = y_true.shape[0] * y_true.shape[1]
-    MAE /= cant
-    MSE /= cant
-    RMSE /= cant
+    if MAE == 0:
+        MAE = 0
+    else:
+        MAE /= cant
+    if MSE == 0:
+        MSE = 0
+    else:
+        MSE /= cant
+    if RMSE == 0:
+        RMSE = 0
+    else:
+        RMSE /= cant
     return MAE, MSE, RMSE
 
 def confusion_matrix_evaluation(confusion_matrix):
@@ -250,6 +259,26 @@ def main(forecast_path, config_file, h: int, display= False):
     print(naive.shape)
     print(y_test.shape)
 
+    #Mascara
+    print("Aplicando mascara")
+    mascara = np.load("Models/mascara.npy")
+    print(mascara)
+    aux = np.array([])
+    for i in data:
+        aux2 = np.array([])
+        for j in i:
+            img_new = cv2.bitwise_and(j, j, mask= mascara)
+            aux2 = np.append(aux2, img_new)
+        aux = np.append(aux, aux2)
+    data = aux.reshape(data.shape[:]).astype(np.uint8)
+    print(data.shape)
+
+    if display:
+        plt.imshow(y_test[0,0], cmap="gray")
+        plt.imshow(data[0,0], cmap="gray")
+        plt.show()
+        plt.imshow(naive[0,0], cmap="gray")
+
     #Debido al funcionamiento de las redes, el resultado no esta categorizado, 
     # por lo que se realiza este proceso en los pronósticos
     colors = get_colors(data[-10,0])
@@ -261,11 +290,13 @@ def main(forecast_path, config_file, h: int, display= False):
     print("Colores de pronóstico categorizados: {}".format(colors))
     s = data.shape[:]
     data = data.reshape(s[0], s[1], s[2], s[3], 1)
-
+    
     if display:
         plt.imshow(y_test[0,0], cmap="gray")
         plt.imshow(data[0,0], cmap="gray")
+        plt.show()
         plt.imshow(naive[0,0], cmap="gray")
+        
     
     y_test *= 255
     naive *= 255
@@ -273,12 +304,16 @@ def main(forecast_path, config_file, h: int, display= False):
     naive = naive.astype(np.uint8)
     data = data.astype(np.uint8)
 
+    #np.save("Models/DiferencesOriginal.npy", y_test[10])
+    #np.save("Models/DiferencesNaive.npy", naive[10])
+    #np.save("Models/DiferencesForecast.npy", data[10])
+
     l_class = len(classes)
 
     if display:
         fig = plt.figure(figsize=(10,7))
         r = 3
-        c = 4
+        c = horizon
         ac = 1
         h = horizon
         pos = 100
@@ -308,54 +343,64 @@ def main(forecast_path, config_file, h: int, display= False):
             im.save("GeneratedImageComparation/Naive_t+{}.png".format(i))
         plt.show()
 
-    print("Resultados de los errores de pronóstico")
-    MAE, MSE, RMSE = calculate_errors(y_test.reshape(y_test.shape[:-1])/255, data.reshape(data.shape[:-1])/255)
-    print("MAE", MAE)
-    print("MSE", MSE)
-    print("RMSE", RMSE)
-    res_err_pred = [MAE, MSE, RMSE]
+    cm_f = np.zeros((l_class, l_class), dtype=np.uint64)
+    cm_n = np.zeros((l_class, l_class), dtype=np.uint64)
 
-    print("Resultados de los errores de Naive")
-    MAE, MSE, RMSE = calculate_errors(y_test.reshape(y_test.shape[:-1])/255, naive.reshape(naive.shape[:-1])/255)
-    print("MAE", MAE)
-    print("MSE", MSE)
-    print("RMSE", RMSE)
+    for i in range(horizon):
+        print(i)
+        actual_y = y_test[:, :(i+1)]
+        actual_f = data[:, :(i+1)]
+        actual_n = naive[:, :(i+1)]
 
-    res_err_naive = [MAE, MSE, RMSE]
+        print("Resultados de los errores de pronóstico")
+        MAE, MSE, RMSE = calculate_errors(actual_y.reshape(actual_y.shape[:-1])/255, actual_f.reshape(actual_f.shape[:-1])/255)
+        print("MAE", MAE)
+        print("MSE", MSE)
+        print("RMSE", RMSE)
+        res_err_pred = [MAE, MSE, RMSE]
 
-    cm_f, cm_n = multi_process_evaluation(y_test, data, naive, l_class, classes)
-    print("Matriz de confusión de pronóstico")
-    print(cm_f)
+        print("Resultados de los errores de Naive")
+        MAE, MSE, RMSE = calculate_errors(actual_y.reshape(actual_y.shape[:-1])/255, actual_n.reshape(actual_n.shape[:-1])/255)
+        print("MAE", MAE)
+        print("MSE", MSE)
+        print("RMSE", RMSE)
 
-    cm_res_f, cm_conclusion_f = confusion_matrix_evaluation(cm_f)
+        res_err_naive = [MAE, MSE, RMSE]
 
-    print("NAIVEEE!!!!!!!!!!!!!!")
+        cm_f, cm_n = multi_process_evaluation(actual_y[:,-1], actual_f[:,-1], actual_n[:,-1], cm_f, cm_n, l_class, classes)
+        print("Matriz de confusión de pronóstico")
+        print(cm_f)
 
-    print("Matriz de confusión de naive")
-    print(cm_n)
+        cm_res_f, cm_conclusion_f = confusion_matrix_evaluation(cm_f)
 
-    cm_res_n, cm_conclusion_n = confusion_matrix_evaluation(cm_n)
+        print("NAIVEEE!!!!!!!!!!!!!!")
 
-    #Guardar datos
-    df_err_pronostico = pd.DataFrame(res_err_pred, columns=['Forecast errs'])
-    df_err_naive = pd.DataFrame(res_err_naive, columns=['Naive errs'])
+        print("Matriz de confusión de naive")
+        print(cm_n)
 
-    df_cm_f = pd.DataFrame(cm_f, columns=[f'cat_{i}' for i in range(cm_f.shape[1])])
-    df_cm_res_f = pd.DataFrame(cm_res_f, columns=[f'cat_res_{i}' for i in range(cm_res_f.shape[1])])
-    df_cm_conclusion_f = pd.DataFrame(cm_conclusion_f, columns=[f'cat__con_{i}' for i in range(cm_res_f.shape[1])])
-    df_cm_n = pd.DataFrame(cm_n, columns=[f'cat_{i}' for i in range(cm_n.shape[1])])
-    df_cm_res_n = pd.DataFrame(cm_res_n, columns=[f'cat_res_{i}' for i in range(cm_res_n.shape[1])])
-    df_cm_conclusion_n = pd.DataFrame(cm_conclusion_n, columns=[f'cat_con_{i}' for i in range(cm_res_f.shape[1])])
+        cm_res_n, cm_conclusion_n = confusion_matrix_evaluation(cm_n)
+
+        #Guardar datos
+        df_err_pronostico = pd.DataFrame(res_err_pred, columns=['Forecast errs'])
+        df_err_naive = pd.DataFrame(res_err_naive, columns=['Naive errs'])
+
+        df_cm_f = pd.DataFrame(cm_f, columns=[f'cat_{i}' for i in range(cm_f.shape[1])])
+        df_cm_res_f = pd.DataFrame(cm_res_f, columns=[f'cat_res_{i}' for i in range(cm_res_f.shape[1])])
+        df_cm_conclusion_f = pd.DataFrame(cm_conclusion_f, columns=[f'cat__con_{i}' for i in range(cm_res_f.shape[1])])
+        df_cm_n = pd.DataFrame(cm_n, columns=[f'cat_{i}' for i in range(cm_n.shape[1])])
+        df_cm_res_n = pd.DataFrame(cm_res_n, columns=[f'cat_res_{i}' for i in range(cm_res_n.shape[1])])
+        df_cm_conclusion_n = pd.DataFrame(cm_conclusion_n, columns=[f'cat_con_{i}' for i in range(cm_res_f.shape[1])])
 
 
-    df_combinado = pd.concat([df_err_pronostico, df_err_naive, df_cm_f, df_cm_res_f, df_cm_conclusion_f, df_cm_n, df_cm_res_n, df_cm_conclusion_n], axis= 1)
-    df_combinado.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_h_'+str(horizon)+'.xlsx', index= False)
+        df_combinado = pd.concat([df_err_pronostico, df_err_naive, df_cm_f, df_cm_res_f, df_cm_conclusion_f, df_cm_n, df_cm_res_n, df_cm_conclusion_n], axis= 1)
+        df_combinado.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_h_'+str(i+1)+'.xlsx', index= False)
 
 
 
 if __name__ == "__main__":
-    for i in range(12):
-        #main('DroughtDataset_model_testing_1729628349.npy', 'Conv-LSTM_1.json', (i+1), False)
-        #main('DroughtDataset_model_testing_1729610512.npy', 'Conv-LSTM_1.json', (i+1), False)
-        #main('DroughtDataset_model_testing_1729613412.npy', 'Conv-LSTM_1.json', (i+1), False)
-        main('DroughtDataset_model_testing_1729619966.npy', 'Conv-LSTM_1.json', (i+1), False)
+    main('DroughtDataset_model_testing_1731371092.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1731374986.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1731386833.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1731423857.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1731458809.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1731467453.npy', 'Conv-LSTM_1.json', 12, False)

@@ -56,7 +56,67 @@ def map_forecast_recursive(model: keras.Model, x_test: np.array, horizonte: int)
     print(total_preds.shape)
     return total_preds
 
-def main(config_file, display= False):
+def model3(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def model8(inp, channels):
+    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    #m = keras.layers.Dropout(0.25)(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def model11(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "relu")(m)
+    return m
+
+def model12(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def model13(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(64, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def model14(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(64, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def main(config_file, load_and_forecast=False, model_name='', display= False):
     config_json = read_json_file(config_file)
     window = config_json['window_size']
     rows = config_json['rows']
@@ -75,6 +135,17 @@ def main(config_file, display= False):
     strategy = tf.distribute.MirroredStrategy()
     #strategy = tf.distribute.OneDeviceStrategy(device='/GPU:0')
     with strategy.scope():
+        if load_and_forecast:
+            model = keras.models.load_model(model_name)
+            err = model.evaluate(x_test, y_test, batch_size= 2)
+            print("El error del modelo es: {}".format(err))
+
+            forecast = map_forecast_recursive(model, x_test, horizon)
+            forecast_name = "Models/{}".format(model_name)
+            np.save(forecast_name+'.npy', forecast)
+            print("Pronósticos almacenados en: {}".format(forecast_name))
+            return
+
         inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
         #It will be constructed a 3 ConvLSTM2D layers with batch normalization,
         #Followed by a Conv3D layer for the spatiotemporal outputs.
@@ -86,20 +157,25 @@ def main(config_file, display= False):
         #m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
         #m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
 
-        m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
-        m = keras.layers.BatchNormalization()(m)
-        m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
-        m = keras.layers.BatchNormalization()(m)
-        #m = keras.layers.ConvLSTM2D(12, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
-        m = keras.layers.BatchNormalization()(m)
-        m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+        #m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
         #m = keras.layers.BatchNormalization()(m)
-        m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
+        #m = keras.layers.MaxPooling3D(pool_size=(1, 1, 1), padding='same')(m)
+        #m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+        #m = keras.layers.BatchNormalization()(m)
+        #m = keras.layers.MaxPooling3D(pool_size=(1, 1, 1), padding='same')(m)
+        #m = keras.layers.ConvLSTM2D(12, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+        #m = keras.layers.BatchNormalization()(m)
+        #m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+        #m = keras.layers.BatchNormalization()(m)
+        #m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
         #m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
-        m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+        #m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
+        #m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
+        #m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+        m = model14(inp, channels)
 
         model = keras.models.Model(inp, m)
-        model.compile(loss = 'binary_crossentropy', optimizer= optimizer)
+        model.compile(loss = 'mae', optimizer= optimizer)
 
         print(model.summary())
 
@@ -128,10 +204,9 @@ def main(config_file, display= False):
                 new_prediction = model.predict(example.reshape(1,*example.shape[0:]))
                 example = np.concatenate((example[1:], new_prediction), axis=0)
                 print(example.shape)
-
             predictions = example[:-4]
             print(predictions.shape)
-        
+    
         err = model.evaluate(x_test, y_test, batch_size= 2)
         print("El error del modelo es: {}".format(err))
 

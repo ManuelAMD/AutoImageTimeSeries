@@ -84,6 +84,7 @@ class Preprocessing:
         #Donde los pixeles contienen información, son pixeles que cambian en el tiempo
         mascara = np.where(aux > 0, 1, 0)
         mascara = mascara.astype('uint8')
+        np.save("Models/mascara.npy", mascara)
         if display:
             plt.imshow(x[0], cmap="gray")
             plt.show()
@@ -112,7 +113,7 @@ class Preprocessing:
             plt.imshow(new_array[0], cmap="gray")
             plt.show()
         self.data = new_array
-        #np.save(self.res_path + '.npy', new_array)
+        np.save(self.res_path + '.npy', new_array)
 
 
     def recolor(args):
@@ -204,13 +205,13 @@ class Preprocessing:
 if __name__ == '__main__':
     names_file_path = 'NamesDroughtDataset.csv'
     #Recortar la zona de interes
-    p = Preprocessing('app/datasets/DroughtDataset', 'app/datasets/DroughtDatasetMainland')
-    p.load_data(480,640, names_file_path)
-    p.crop_images(240, 318, 600, 438)
+    #p = Preprocessing('app/datasets/DroughtDataset', 'app/datasets/DroughtDatasetMainland')
+    #p.load_data(480,640, names_file_path)
+    #p.crop_images(240, 318, 600, 438)
 
-    p = Preprocessing('app/datasets/DroughtDatasetMainland', 'app/datasets/DroughtDatasetMainland')
+    p = Preprocessing('app/datasets/DroughtDatasetMainland', 'app/datasets/DroughtDatasetMask')
     p.load_data(120,360, names_file_path)
     p.map_masking(save_imgs= False, no_zone= True, display= True)
-    categories = np.array([0, 35, 70, 119, 177, 220, 255])
-    p.categorize(categories, True)
-    p.save_data_numpy_array('Models/ProcessedDroughtDataset.npy')
+    #categories = np.array([0, 35, 70, 119, 177, 220, 255])
+    #p.categorize(categories, True)
+    #p.save_data_numpy_array('Models/ProcessedDroughtDataset.npy')
