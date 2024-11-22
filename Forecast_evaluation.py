@@ -304,9 +304,9 @@ def main(forecast_path, config_file, h: int, display= False):
     naive = naive.astype(np.uint8)
     data = data.astype(np.uint8)
 
-    #np.save("Models/DiferencesOriginal.npy", y_test[10])
-    #np.save("Models/DiferencesNaive.npy", naive[10])
-    #np.save("Models/DiferencesForecast.npy", data[10])
+    np.save("Models/DiferencesOriginal.npy", y_test[10])
+    np.save("Models/DiferencesNaive.npy", naive[10])
+    np.save("Models/DiferencesForecast.npy", data[10])
 
     l_class = len(classes)
 
@@ -398,9 +398,9 @@ def main(forecast_path, config_file, h: int, display= False):
 
 
 if __name__ == "__main__":
-    main('DroughtDataset_model_testing_1731371092.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1731374986.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1731386833.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1731423857.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1731458809.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1731467453.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1730753475.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731542803.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731702460.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731770579.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731781237.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1732204124.npy', 'Conv-LSTM_1.json', 12, False)

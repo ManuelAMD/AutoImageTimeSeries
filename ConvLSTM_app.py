@@ -56,7 +56,7 @@ def map_forecast_recursive(model: keras.Model, x_test: np.array, horizonte: int)
     print(total_preds.shape)
     return total_preds
 
-def model3(inp, channels):
+def model1(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
@@ -67,7 +67,7 @@ def model3(inp, channels):
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
-def model8(inp, channels):
+def model2(inp, channels):
     m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
@@ -77,7 +77,7 @@ def model8(inp, channels):
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
-def model11(inp, channels):
+def model3(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
@@ -86,7 +86,7 @@ def model11(inp, channels):
     m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "relu")(m)
     return m
 
-def model12(inp, channels):
+def model4(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
@@ -95,7 +95,7 @@ def model12(inp, channels):
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
-def model13(inp, channels):
+def model5(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
@@ -105,7 +105,7 @@ def model13(inp, channels):
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
-def model14(inp, channels):
+def model6(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
@@ -172,7 +172,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
         #m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
         #m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
         #m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
-        m = model14(inp, channels)
+        m = model6(inp, channels)
 
         model = keras.models.Model(inp, m)
         model.compile(loss = 'mae', optimizer= optimizer)
