@@ -33,7 +33,7 @@ for i in range(len(original)):
 
     #cv2.imshow('diff', result)
     cv2.waitKey()
-    cv2.imwrite("GeneratedImageComparation/DifferenceForecast_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceForecast6_t+{}.png".format(i), result)
 
 for i in range(len(original)):
     diff = 255 - cv2.absdiff(naive[i], original[i])
@@ -47,4 +47,4 @@ for i in range(len(original)):
 
     #cv2.imshow('diff', result)
     cv2.waitKey()
-    cv2.imwrite("GeneratedImageComparation/DifferenceNaive_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/Difference6Naive_t+{}.png".format(i), result)

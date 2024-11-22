@@ -398,8 +398,8 @@ def main(forecast_path, config_file, h: int, display= False):
 
 
 if __name__ == "__main__":
-    main('DroughtDataset_model_testing_1730753475.npy', 'Conv-LSTM_1.json', 12, False)
-    #main('DroughtDataset_model_testing_1731542803.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730753475.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1731542803.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1731702460.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1731770579.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1731781237.npy', 'Conv-LSTM_1.json', 12, False)
