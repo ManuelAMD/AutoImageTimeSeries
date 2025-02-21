@@ -77,7 +77,7 @@ def recolor(args):
 
 window = 8
 channels = 1
-rows = 122
+rows = 120
 cols = 360
 categories = np.array([0, 51, 102, 153, 204, 255])
 horizon = 4
@@ -92,17 +92,17 @@ DATASET_NAME = "usdrought"
 BATCH_SIZE = 2
 WINDOW_SIZE = window - 1
 AUTO = tf.data.AUTOTUNE
-INPUT_SHAPE = (WINDOW_SIZE, 122, 360, 1)
+INPUT_SHAPE = (WINDOW_SIZE, 120, 360, 1)
 
 #OPTIMIZER
 LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-5
 
 #TRAINING
-EPOCHS = 6
+EPOCHS = 50
 
 #TUBELET EMBEDDING
-PATCH_SIZE = (4, 8, 8)
+PATCH_SIZE = (2, 16, 16)
 NUM_PATCHES = (INPUT_SHAPE[0] // PATCH_SIZE[0]) ** 2
 
 #ViViT ARCHITECTURE
@@ -111,7 +111,7 @@ PROJECTION_DIM = 128
 NUM_HEADS = 8
 NUM_LAYERS = 8
 
-data = np.load("Models/DroughtDatasetMask.npy")
+data = np.load("Models/ProcessedDroughtDataset.npy")
 print(data.shape)
 
 #Mostrar imágenes
@@ -124,7 +124,7 @@ for idx, ax in enumerate(axes.flat):
     ax.axis("off")
 
 plt.show()
-
+"""
 args = [(d, categories) for d in data]
 
 num_cores = multiprocessing.cpu_count()
@@ -142,7 +142,7 @@ with ProcessPoolExecutor(max_workers=num_cores-4) as pool:
             result = future.result()
             results.append(result)
 x_greys = np.array(results)
-x = x_greys.astype('float32') / 255
+x = x_greys.astype('float32') / 255"""
 
 x_2 = agroup_window(data, window)
 print(x_2.shape)
@@ -216,9 +216,9 @@ def video_transformer(
     #patches = layers.Conv2D(1, kernel_size = (2,1))(patches)
 
   representation = layers.LayerNormalization(epsilon= layer_norm_eps)(encoded_patches)
-  representation = layers.Reshape((675, 128, 1))(representation)
-  representation = layers.Conv2D(16, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
-  representation = layers.Conv2D(8, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
+  representation = layers.Reshape((462, 128, 1))(representation)
+  #representation = layers.Conv2D(16, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
+  #representation = layers.Conv2D(8, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
   representation = layers.Conv2D(1, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
   #representation = layers.Reshape((338, 128))(representation)
   #representation = layers.GlobalAvgPool1D()(representation)
@@ -230,9 +230,9 @@ def video_transformer(
   cnn = layers.Reshape((30,90,1))(x)
   cnn = layers.Conv2DTranspose(128, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
   cnn = layers.Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
-  cnn = keras.layers.BatchNormalization()(cnn)
+  #cnn = keras.layers.BatchNormalization()(cnn)
   #cnn = layers.Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
-  outputs = layers.Conv2DTranspose(1, (3, 1), activation='sigmoid')(cnn)
+  outputs = layers.Conv2DTranspose(1, (3, 3), padding='same', activation='sigmoid')(cnn)
 
 
   #embeddings = layers.TimeDistributed(patches)(inputs)
@@ -252,48 +252,52 @@ def run_experiment():
   #optimizer = keras.optimizers.Adam(learning_rate= LEARNING_RATE)
   model.compile(
       optimizer= 'Adam',
-      loss= "categorical_crossentropy",
+      loss= "mae",
   )
   model.summary()
   history = model.fit(x_train, y_train, epochs= EPOCHS, validation_data= (x_validation, y_validation))
   return model
-model = run_experiment()
 
-preds = model.predict(x_test)
-preds.shape
+strategy = tf.distribute.MirroredStrategy()
+#strategy = tf.distribute.OneDeviceStrategy(device='/GPU:0')
+with strategy.scope():
+    model = run_experiment()
 
-example = x_test[np.random.choice(range(len(x_test)), size= 1)[0]]
+    preds = model.predict(x_test)
+    preds.shape
 
-print(example.shape)
+    example = x_test[np.random.choice(range(len(x_test)), size= 1)[0]]
 
-for _ in range(horizon):
     print(example.shape)
-    new_prediction = model.predict(example.reshape(1,*example.shape[0:]))
-    example = np.concatenate((example[1:], new_prediction), axis=0)
-    print(example.shape)
-    
 
-predictions = example[:]
-print(predictions.shape)
+    for _ in range(horizon):
+        print(example.shape)
+        new_prediction = model.predict(example.reshape(1,*example.shape[0:]))
+        example = np.concatenate((example[1:], new_prediction), axis=0)
+        print(example.shape)
+        
 
-fig, axes = plt.subplots(2,3, figsize= (20,4))
-for idx, ax in enumerate(axes[0]):
-    ax.imshow((predictions[idx]), cmap='gray')
-    ax.set_title("Frame {}".format(idx+3))
-    ax.axis("off")
-plt.show()
+    predictions = example[:]
+    print(predictions.shape)
 
-err = model.evaluate(x_test, y_test, batch_size= 2)
-print("El error del modelo es: {}".format(err))
-preds = model.predict(x_test, batch_size= 2)
-print(preds.shape)
-x_test_new = add_last(x_test, preds[:])
-preds2 = model.predict(x_test_new, batch_size= 2)
-x_test_new = add_last(x_test_new, preds2[:])
-preds3 = model.predict(x_test_new, batch_size= 2)
-x_test_new = add_last(x_test_new, preds3[:])
-preds4 = model.predict(x_test_new, batch_size= 2)
-res_forecast = add_last(x_test_new, preds4[:])
-print("PREDSS",res_forecast.shape)
+    fig, axes = plt.subplots(2,3, figsize= (20,4))
+    for idx, ax in enumerate(axes[0]):
+        ax.imshow((predictions[idx]), cmap='gray')
+        ax.set_title("Frame {}".format(idx+3))
+        ax.axis("off")
+    plt.show()
 
-np.save("Models/PredictionsTransformers.npy", res_forecast)
+    err = model.evaluate(x_test, y_test, batch_size= 2)
+    print("El error del modelo es: {}".format(err))
+    preds = model.predict(x_test, batch_size= 2)
+    print(preds.shape)
+    x_test_new = add_last(x_test, preds[:])
+    preds2 = model.predict(x_test_new, batch_size= 2)
+    x_test_new = add_last(x_test_new, preds2[:])
+    preds3 = model.predict(x_test_new, batch_size= 2)
+    x_test_new = add_last(x_test_new, preds3[:])
+    preds4 = model.predict(x_test_new, batch_size= 2)
+    res_forecast = add_last(x_test_new, preds4[:])
+    print("PREDSS",res_forecast.shape)
+
+    np.save("Models/PredictionsTransformers.npy", res_forecast)

@@ -73,7 +73,7 @@ def model2(inp, channels):
     m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
-    #m = keras.layers.Dropout(0.25)(m)
+    m = keras.layers.Dropout(0.25)(m)
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
@@ -116,6 +116,25 @@ def model6(inp, channels):
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
+def model7(inp, channels):
+    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    #m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    #m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def model0(inp, channels):
+    m = keras.layers.ConvLSTM2D(1, (5,5), padding= "same", activation= "sigmoid")(inp)
+    #m = keras.layers.BatchNormalization()(m)
+    #m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    #m = keras.layers.BatchNormalization()(m)
+    #m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    #m = keras.layers.Dropout(0.25)(m)
+    #m = keras.layers.Conv2D(channels, (3,3), activation= "s9.igmoid", padding= "same")(m)
+    return m
+
 def main(config_file, load_and_forecast=False, model_name='', display= False):
     config_json = read_json_file(config_file)
     window = config_json['window_size']
@@ -147,41 +166,16 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
             return
 
         inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-        #It will be constructed a 3 ConvLSTM2D layers with batch normalization,
-        #Followed by a Conv3D layer for the spatiotemporal outputs.
-
-        #m = keras.layers.ConvLSTM2D(8, (5,5), padding= "same", activation= "relu")(inp)
-        #m = keras.layers.BatchNormalization()(m)
-        #m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
-        #m = keras.layers.BatchNormalization()(m)
-        #m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
-        #m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
-
-        #m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
-        #m = keras.layers.BatchNormalization()(m)
-        #m = keras.layers.MaxPooling3D(pool_size=(1, 1, 1), padding='same')(m)
-        #m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
-        #m = keras.layers.BatchNormalization()(m)
-        #m = keras.layers.MaxPooling3D(pool_size=(1, 1, 1), padding='same')(m)
-        #m = keras.layers.ConvLSTM2D(12, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
-        #m = keras.layers.BatchNormalization()(m)
-        #m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
-        #m = keras.layers.BatchNormalization()(m)
-        #m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
-        #m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
-        #m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
-        #m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
-        #m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
-        m = model6(inp, channels)
+        m = model7(inp, channels)
 
         model = keras.models.Model(inp, m)
         model.compile(loss = 'mae', optimizer= optimizer)
+        #model.compile(loss = 'binary_crossentropy', optimizer= optimizer)
 
         print(model.summary())
-
         #Callbacks
         early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
-        reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 4)
+        reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
 
         board = TensorBoard(log_dir='logs/{}'.format(name))
 

@@ -209,6 +209,7 @@ def main(forecast_path, config_file, h: int, display= False):
     rows = config_json['rows']
     cols = config_json['cols']
     horizon = h
+    window = config_json['window_size'] -1
 
     forecasts = np.load("Models/{}".format(forecast_path))
     x_test = np.load("Models/x_test_data.npy")
@@ -276,8 +277,8 @@ def main(forecast_path, config_file, h: int, display= False):
     if display:
         plt.imshow(y_test[0,0], cmap="gray")
         plt.imshow(data[0,0], cmap="gray")
-        plt.show()
         plt.imshow(naive[0,0], cmap="gray")
+        plt.show()
 
     #Debido al funcionamiento de las redes, el resultado no esta categorizado, 
     # por lo que se realiza este proceso en los pronósticos
@@ -294,8 +295,8 @@ def main(forecast_path, config_file, h: int, display= False):
     if display:
         plt.imshow(y_test[0,0], cmap="gray")
         plt.imshow(data[0,0], cmap="gray")
-        plt.show()
         plt.imshow(naive[0,0], cmap="gray")
+        plt.show()
         
     
     y_test *= 255
@@ -304,9 +305,10 @@ def main(forecast_path, config_file, h: int, display= False):
     naive = naive.astype(np.uint8)
     data = data.astype(np.uint8)
 
-    np.save("Models/DiferencesOriginal.npy", y_test[10])
-    np.save("Models/DiferencesNaive.npy", naive[10])
-    np.save("Models/DiferencesForecast.npy", data[10])
+    np.save("Models/DiferencesOriginal"+ str(window) +".npy", y_test[10])
+    np.save("Models/DiferencesNaive"+ str(window) +".npy", naive[10])
+    np.save("Models/DiferencesForecast"+ str(window) + forecast_path[:-4] +".npy", data[10])
+    
 
     l_class = len(classes)
 
@@ -398,9 +400,164 @@ def main(forecast_path, config_file, h: int, display= False):
 
 
 if __name__ == "__main__":
-    #main('DroughtDataset_model_testing_1730753475.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1731542803.npy', 'Conv-LSTM_1.json', 12, False)
+    #Nan = 1737572691
+    #main('PredictionsTransformers.npy', 'Conv-LSTM_1.json', 4, True)
+    # W = 2
+    #main('DroughtDataset_model_testing_1737402833.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737486356.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1737576879.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737486356.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737581087.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1738926050.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1738941557.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739281653.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737402833.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1739971663.npy', 'Conv-LSTM_1.json', 12, False)
+
+    # W = 3
+    #main('DroughtDataset_model_testing_1737403771.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #Model_2 Normal
+    #main('DroughtDataset_model_testing_1737575462.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_2 No batch
+    #main('DroughtDataset_model_testing_1737579251.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1737491510.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737647586.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1738922834.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1738959571.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739273055.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737403771.npy', 'Conv-LSTM_1.json', 12, False) 
+
+    # W = 4
+    #main('DroughtDataset_model_testing_1737404801.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737572691.npy', 'Conv-LSTM_1.json', 12, True)
+
+    #main('DroughtDataset_model_testing_1737577664.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737495165.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_3 Normal
+    #main('DroughtDataset_model_testing_1737651027.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_3 No batch
+    #main('DroughtDataset_model_testing_1737653624.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_4 Normal
+    #main('DroughtDataset_model_testing_1738880067.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_4 No batch
+    #main('DroughtDataset_model_testing_1738918316.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_5 Normal
+    #main('DroughtDataset_model_testing_1739003797.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_5 No batch
+    #main('DroughtDataset_model_testing_1739012848.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_6 Normal
+    #main('DroughtDataset_model_testing_1739214878.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_6 No batch
+    #main('DroughtDataset_model_testing_1739221320.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737404801.npy', 'Conv-LSTM_1.json', 12, False)
+
+    # W = 5
+    #main('DroughtDataset_model_testing_1737402108.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1737571625.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737509868.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737660505.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1738686721.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739017484.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739202635.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737402108.npy', 'Conv-LSTM_1.json', 12, False)
+    
+
+    # W = 6
+    #main('DroughtDataset_model_testing_1737484251.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1731542803.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731556679.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1731702460.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1731770579.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1731781237.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1732204124.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1737484251.npy', 'Conv-LSTM_1.json', 12, False)
+
+    # W = 7
+    #main('DroughtDataset_model_testing_1737483278.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #main('DroughtDataset_model_testing_1731371092.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731374986.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731386833.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731423857.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731458809.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731467453.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #main('DroughtDataset_model_testing_1737483278.npy', 'Conv-LSTM_1.json', 12, False)
+
+    # W = 8
+    #main('DroughtDataset_model_testing_1737481537.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #main('DroughtDataset_model_testing_1737144261.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737390342.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #main('DroughtDataset_model_testing_1730753475.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1729969972.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730245559.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730674369.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730578222.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730477291.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #main('DroughtDataset_model_testing_1737481537.npy', 'Conv-LSTM_1.json', 12, False)
+
+    # W = 9
+    #main('DroughtDataset_model_testing_1737480194.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1730956825.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730906187.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730964452.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1730996203.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731001789.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731010169.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #main('DroughtDataset_model_testing_1737480194.npy', 'Conv-LSTM_1.json', 12, False)
+
+    # W = 10
+    #main('DroughtDataset_model_testing_1737478852.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1731173349.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731163779.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731127046.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731114524.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731094863.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1731078521.npy', 'Conv-LSTM_1.json', 12, False)
+    
+    #main('DroughtDataset_model_testing_1737478852.npy', 'Conv-LSTM_1.json', 12, False)
+
+    # W = 11
+    #main('DroughtDataset_model_testing_1737476158.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1737570085.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737517576.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_3 Normal
+    #main('DroughtDataset_model_testing_1737695688.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_3 No batch
+    #main('DroughtDataset_model_testing_1737743383.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1738092523.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739104601.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_6 Normal
+    #main('DroughtDataset_model_testing_1739183381.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_6 No batch
+    #main('DroughtDataset_model_testing_1739195585.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737476158.npy', 'Conv-LSTM_1.json', 12, False)
+    
+
+    # W = 12
+    #main('DroughtDataset_model_testing_1737477102.npy', 'Conv-LSTM_1.json', 12, False)
+
+    #main('DroughtDataset_model_testing_1737566740.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737527554.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_3 normal
+    #main('DroughtDataset_model_testing_1737752104.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_3 No batch
+    #main('DroughtDataset_model_testing_1737735406.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737780655.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739120074.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739132424.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1737477102.npy', 'Conv-LSTM_1.json', 12, False)
+

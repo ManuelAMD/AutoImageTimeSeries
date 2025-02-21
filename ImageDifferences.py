@@ -31,9 +31,9 @@ for i in range(len(original)):
     result = original[i]
     result[mask != 0] = [0,0,255]
 
-    #cv2.imshow('diff', result)
+    cv2.imshow('diff', result)
     cv2.waitKey()
-    cv2.imwrite("GeneratedImageComparation/DifferenceForecast6_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceForecastTesis_t+{}.png".format(i), result)
 
 for i in range(len(original)):
     diff = 255 - cv2.absdiff(naive[i], original[i])
@@ -47,4 +47,4 @@ for i in range(len(original)):
 
     #cv2.imshow('diff', result)
     cv2.waitKey()
-    cv2.imwrite("GeneratedImageComparation/Difference6Naive_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceTesisNaive_t+{}.png".format(i), result)
