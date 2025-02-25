@@ -413,7 +413,7 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1738941557.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1739281653.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1737402833.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1739971663.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1739971663.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 3
     #main('DroughtDataset_model_testing_1737403771.npy', 'Conv-LSTM_1.json', 12, False)
@@ -429,6 +429,7 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1738959571.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1739273055.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1737403771.npy', 'Conv-LSTM_1.json', 12, False) 
+    #main('DroughtDataset_model_testing_1740159109.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 4
     #main('DroughtDataset_model_testing_1737404801.npy', 'Conv-LSTM_1.json', 12, False)
@@ -453,6 +454,7 @@ if __name__ == "__main__":
     #Model_6 No batch
     #main('DroughtDataset_model_testing_1739221320.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1737404801.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740218609.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 5
     #main('DroughtDataset_model_testing_1737402108.npy', 'Conv-LSTM_1.json', 12, False)
@@ -464,7 +466,7 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1739017484.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1739202635.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1737402108.npy', 'Conv-LSTM_1.json', 12, False)
-    
+    #main('DroughtDataset_model_testing_1740387465.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 6
     #main('DroughtDataset_model_testing_1737484251.npy', 'Conv-LSTM_1.json', 12, False)
@@ -477,6 +479,7 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1732204124.npy', 'Conv-LSTM_1.json', 12, False)
 
     #main('DroughtDataset_model_testing_1737484251.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740399564.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 7
     #main('DroughtDataset_model_testing_1737483278.npy', 'Conv-LSTM_1.json', 12, False)
@@ -489,6 +492,7 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1731467453.npy', 'Conv-LSTM_1.json', 12, False)
     
     #main('DroughtDataset_model_testing_1737483278.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740404989.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 8
     #main('DroughtDataset_model_testing_1737481537.npy', 'Conv-LSTM_1.json', 12, False)
@@ -504,6 +508,7 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1730477291.npy', 'Conv-LSTM_1.json', 12, False)
     
     #main('DroughtDataset_model_testing_1737481537.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740415036.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 9
     #main('DroughtDataset_model_testing_1737480194.npy', 'Conv-LSTM_1.json', 12, False)
@@ -516,6 +521,7 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1731010169.npy', 'Conv-LSTM_1.json', 12, False)
     
     #main('DroughtDataset_model_testing_1737480194.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740423831.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 10
     #main('DroughtDataset_model_testing_1737478852.npy', 'Conv-LSTM_1.json', 12, False)
@@ -528,12 +534,16 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1731078521.npy', 'Conv-LSTM_1.json', 12, False)
     
     #main('DroughtDataset_model_testing_1737478852.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740480296.npy', 'Conv-LSTM_1.json', 12, False)
 
     # W = 11
     #main('DroughtDataset_model_testing_1737476158.npy', 'Conv-LSTM_1.json', 12, False)
 
     #main('DroughtDataset_model_testing_1737570085.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_2
     #main('DroughtDataset_model_testing_1737517576.npy', 'Conv-LSTM_1.json', 12, False)
+    #Model_2
+    #main('DroughtDataset_model_testing_1740394316.npy', 'Conv-LSTM_1.json', 12, False)
     #Model_3 Normal
     #main('DroughtDataset_model_testing_1737695688.npy', 'Conv-LSTM_1.json', 12, False)
     #Model_3 No batch
@@ -545,6 +555,7 @@ if __name__ == "__main__":
     #Model_6 No batch
     #main('DroughtDataset_model_testing_1739195585.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1737476158.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740485474.npy', 'Conv-LSTM_1.json', 12, False)
     
 
     # W = 12
@@ -560,4 +571,5 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1739120074.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1739132424.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1737477102.npy', 'Conv-LSTM_1.json', 12, False)
+    main('DroughtDataset_model_testing_1740490926.npy', 'Conv-LSTM_1.json', 12, False)
 
