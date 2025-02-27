@@ -400,6 +400,49 @@ def main(forecast_path, config_file, h: int, display= False):
 
 
 if __name__ == "__main__":
+    #Multi-CNN
+    #W=7
+    #main('Model_MultiCNN_testing_1740654153.npy','Conv-LSTM_1.json', 12, True)
+    #W=9
+    #main('Model_MultiCNN_testing_1740655076.npy','Conv-LSTM_1.json', 12, True)
+    #ViViTs ViVitLayers=4 Heads=4
+    #W=6
+    #main('DroughtDataset_model_testing_1740659737.npy','Conv-LSTM_1.json', 12, True)
+    #w=7
+    #main('DroughtDataset_model_testing_1740657903.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=2 Heads=4
+    main('DroughtDataset_model_testing_1740666525.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=2 Heads=2
+    main('DroughtDataset_model_testing_1740666407.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=1 Heads=2
+    main('DroughtDataset_model_testing_1740666277.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=1 Heads=4
+    main('DroughtDataset_model_testing_1740666131.npy','Conv-LSTM_1.json', 12, True)
+
+    #W=8
+    #main('DroughtDataset_model_testing_1740657199.npy','Conv-LSTM_1.json', 12, True)
+    #W=9
+    #main('DroughtDataset_model_testing_1740659226.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=2 Heads=4
+    #main('DroughtDataset_model_testing_1740664011.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=2 Heads=2
+    #main('DroughtDataset_model_testing_1740664506.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=1 Heads=2
+    #main('DroughtDataset_model_testing_1740664761.npy','Conv-LSTM_1.json', 12, True)
+      #ViVitLayers=1 Heads=4
+    #main('DroughtDataset_model_testing_1740664957.npy','Conv-LSTM_1.json', 12, True)
+
+    #ViViTs 2 ViVitLayers=4 Heads=4
+    #W=6
+    #main('DroughtDataset_model_testing_1740660179.npy','Conv-LSTM_1.json', 12, True)
+    #w=7
+    #main('DroughtDataset_model_testing_1740660626.npy','Conv-LSTM_1.json', 12, True)
+    #W=8
+    #main('DroughtDataset_model_testing_1740661453.npy','Conv-LSTM_1.json', 12, True)
+    #W=9
+    #main('DroughtDataset_model_testing_1740662779.npy','Conv-LSTM_1.json', 12, True)
+    
+
     #Nan = 1737572691
     #main('PredictionsTransformers.npy', 'Conv-LSTM_1.json', 4, True)
     # W = 2
@@ -571,5 +614,5 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1739120074.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1739132424.npy', 'Conv-LSTM_1.json', 12, False)
     #main('DroughtDataset_model_testing_1737477102.npy', 'Conv-LSTM_1.json', 12, False)
-    main('DroughtDataset_model_testing_1740490926.npy', 'Conv-LSTM_1.json', 12, False)
+    #main('DroughtDataset_model_testing_1740490926.npy', 'Conv-LSTM_1.json', 12, False)
 

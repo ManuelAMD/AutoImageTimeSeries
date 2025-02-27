@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import os
+import json
+import time
 import tensorflow as tf
 import keras
 import matplotlib.pyplot as plt
@@ -10,7 +12,7 @@ from keras import layers, ops
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 from tqdm import tqdm
-
+from mapPreprocessing import Preprocessing
 
 #Características de un transformer
 class TubeletEmbedding(layers.Layer):
@@ -53,6 +55,12 @@ def create_shifted_frames(data):
     y = data[:, data.shape[1] - 1, :, :]
     return x, y
 
+def read_json_file(filename):
+    f = open('configurations/{}'.format(filename), "r")
+    parameters = json.load(f)
+    print(type(parameters))
+    return parameters
+
 def agroup_window(data, window):
     new_data = [data[i : window + i] for i in range(len(data) - window + 1)]
     return np.array(new_data)
@@ -75,12 +83,36 @@ def recolor(args):
     res = recolor_greys_image(res, pallete)
     return np.array(res)
 
-window = 8
-channels = 1
-rows = 120
-cols = 360
-categories = np.array([0, 51, 102, 153, 204, 255])
-horizon = 4
+def map_forecast_recursive(model: keras.Model, x_test: np.array, horizonte: int):
+    x_aux = x_test
+    total_preds = []
+    for i in range(horizonte):
+        predictions = model.predict(x_aux, batch_size= 2)
+        total_preds.append(predictions)
+        x_aux = add_last(x_aux, predictions[:])
+    total_preds = np.array(total_preds)
+    print(total_preds.shape)
+    total_preds = np.transpose(total_preds, (1,0,2,3,4))
+    print(total_preds.shape)
+    return total_preds
+
+config_json = read_json_file('Conv-LSTM_1.json')
+window = config_json['window_size']
+rows = config_json['rows']
+cols = config_json['cols']
+channels = config_json['channels']
+horizon = config_json['horizon']
+name = config_json['name'] + '_model_testing_{}'.format(int(time.time()))
+optimizer = config_json['optimizer']
+data_name = '{}/{}.npy'.format(config_json['folder_models_save'], config_json['folder'])
+early_stopping_value = config_json['deep_training_early_stopping_patience']
+
+#window = 8
+#channels = 1
+#rows = 120
+#cols = 360
+#categories = np.array([0, 51, 102, 153, 204, 255])
+#horizon = 4
 
 #MAX_SEQ_LENGTH = 20
 #NUM_FEATURES = 1024
@@ -99,7 +131,7 @@ LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-5
 
 #TRAINING
-EPOCHS = 50
+EPOCHS = 150
 
 #TUBELET EMBEDDING
 PATCH_SIZE = (2, 16, 16)
@@ -108,8 +140,8 @@ NUM_PATCHES = (INPUT_SHAPE[0] // PATCH_SIZE[0]) ** 2
 #ViViT ARCHITECTURE
 LAYER_NORM_EPS = 1e-6
 PROJECTION_DIM = 128
-NUM_HEADS = 8
-NUM_LAYERS = 8
+NUM_HEADS = 4
+NUM_LAYERS = 2
 
 data = np.load("Models/ProcessedDroughtDataset.npy")
 print(data.shape)
@@ -143,7 +175,7 @@ with ProcessPoolExecutor(max_workers=num_cores-4) as pool:
             results.append(result)
 x_greys = np.array(results)
 x = x_greys.astype('float32') / 255"""
-
+"""
 x_2 = agroup_window(data, window)
 print(x_2.shape)
 x_train = x_2[: int(len(x_2) * .7)]
@@ -168,7 +200,11 @@ print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validatio
 print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
 
 np.save("Models/x_test_transformer_greys_forecast.npy", x_test)
-np.save("Models/y_test_transformer_greys_forecast.npy", y_test)
+np.save("Models/y_test_transformer_greys_forecast.npy", y_test)"""
+
+preprocess = Preprocessing()
+preprocess.load_from_numpy_array(data_name, rows, cols, channels)
+x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
 
 def video_transformer(
     tubelet_embedder,
@@ -216,6 +252,7 @@ def video_transformer(
     #patches = layers.Conv2D(1, kernel_size = (2,1))(patches)
 
   representation = layers.LayerNormalization(epsilon= layer_norm_eps)(encoded_patches)
+  #representation = layers.Reshape((616, 128, 1))(representation)
   representation = layers.Reshape((462, 128, 1))(representation)
   #representation = layers.Conv2D(16, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
   #representation = layers.Conv2D(8, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
@@ -224,10 +261,12 @@ def video_transformer(
   #representation = layers.GlobalAvgPool1D()(representation)
   representation = layers.Flatten()(representation)
 
+  #x = layers.Dense(10800, activation= 'relu')(representation)
   x = layers.Dense(2700, activation= 'relu')(representation)
   x = keras.layers.BatchNormalization()(x)
   #outputs = layers.Reshape((input_shape[1],input_shape[2],1))(x)
   cnn = layers.Reshape((30,90,1))(x)
+  #cnn = layers.Reshape((60,180,1))(x)
   cnn = layers.Conv2DTranspose(128, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
   cnn = layers.Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
   #cnn = keras.layers.BatchNormalization()(cnn)
@@ -255,7 +294,9 @@ def run_experiment():
       loss= "mae",
   )
   model.summary()
-  history = model.fit(x_train, y_train, epochs= EPOCHS, validation_data= (x_validation, y_validation))
+  early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
+  reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
+  history = model.fit(x_train, y_train, epochs= EPOCHS, validation_data= (x_validation, y_validation),callbacks = [reduce_lr, early_stopping])
   return model
 
 strategy = tf.distribute.MirroredStrategy()
@@ -289,7 +330,7 @@ with strategy.scope():
 
     err = model.evaluate(x_test, y_test, batch_size= 2)
     print("El error del modelo es: {}".format(err))
-    preds = model.predict(x_test, batch_size= 2)
+    """preds = model.predict(x_test, batch_size= 2)
     print(preds.shape)
     x_test_new = add_last(x_test, preds[:])
     preds2 = model.predict(x_test_new, batch_size= 2)
@@ -300,4 +341,9 @@ with strategy.scope():
     res_forecast = add_last(x_test_new, preds4[:])
     print("PREDSS",res_forecast.shape)
 
-    np.save("Models/PredictionsTransformers.npy", res_forecast)
+    np.save("Models/PredictionsTransformers.npy", res_forecast)"""
+    forecast = map_forecast_recursive(model, x_test, horizon)
+    forecast_name = "Models/{}".format(name)
+    model.save(forecast_name+'.keras')
+    np.save(forecast_name+'.npy', forecast)
+    print("Pronósticos almacenados en: {}".format(forecast_name))

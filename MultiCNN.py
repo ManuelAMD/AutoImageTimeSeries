@@ -8,6 +8,8 @@ from concurrent.futures import ProcessPoolExecutor
 from tqdm import tqdm
 import time
 import matplotlib.pyplot as plt
+from mapPreprocessing import Preprocessing
+import json
 
 def recolor(args):
     data, pallete = args
@@ -18,6 +20,12 @@ def recolor(args):
 def agroup_window(data, window):
     new_data = [data[i:window+i] for i in range(len(data)-window+1)]
     return np.array(new_data)
+
+def read_json_file(filename):
+    f = open('configurations/{}'.format(filename), "r")
+    parameters = json.load(f)
+    print(type(parameters))
+    return parameters
 
 def create_shifted_frames(data):
     x = data[:, 0 : data.shape[1] - 1, :, :]
@@ -36,18 +44,46 @@ def add_last(data, new_vals):
     print("CX", x_test_new.shape)
     return x_test_new
 
-def main():
-    epochs = 50
-    batch_size = 4
-    window = 9
-    channels = 1
-    rows = 260
-    cols = 640
+def map_forecast_recursive(model: keras.Model, x_test: np.array, horizonte: int):
+    x_aux = x_test
+    total_preds = []
+    for i in range(horizonte):
+        predictions = model.predict((x_aux[:,0],x_aux[:,1], x_aux[:,2], x_aux[:,3], x_aux[:,4], x_aux[:,5], x_aux[:,6], x_aux[:,7], x_aux[:,8]), batch_size= 2)
+        #predictions = model.predict((x_aux[:,0],x_aux[:,1], x_aux[:,2], x_aux[:,3], x_aux[:,4], x_aux[:,5], x_aux[:,6]), batch_size= 2)
+        total_preds.append(predictions)
+        x_aux = add_last(x_aux, predictions[:])
+    total_preds = np.array(total_preds)
+    print(total_preds.shape)
+    total_preds = np.transpose(total_preds, (1,0,2,3,4))
+    print(total_preds.shape)
+    return total_preds
+
+def main(config_file, load_and_forecast=False, model_name='', display= False):
+    config_json = read_json_file(config_file)
+    window = config_json['window_size']
+    rows = config_json['rows']
+    cols = config_json['cols']
+    channels = config_json['channels']
+    horizon = config_json['horizon']
+    name = config_json['name'] + '_model_testing_{}'.format(int(time.time()))
+    optimizer = config_json['optimizer']
+    data_name = '{}/{}.npy'.format(config_json['folder_models_save'], config_json['folder'])
+    early_stopping_value = config_json['deep_training_early_stopping_patience']
+    #epochs = 150
+    #batch_size = 4
+    #window = 9
+    #channels = 1
+    #rows = 260
+    #cols = 640
     categories = np.array([0,35,70,119,177,220,255])
-    horizon = 4
+    #horizon = 12
     name = 'Model_MultiCNN_testing_{}'.format(int(time.time()))
 
-    x = np.load('Models/SPIDatasetMask.npy').astype(np.uint8)
+    preprocess = Preprocessing()
+    preprocess.load_from_numpy_array(data_name, rows, cols, channels)
+    x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
+
+    """x = np.load('Models/SPIDatasetMask.npy').astype(np.uint8)
 
     args = [(d, categories) for d in x]
     num_cores = multiprocessing.cpu_count()
@@ -92,7 +128,7 @@ def main():
     print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
 
     np.save("Models/x_test_multicnn_greys.npy", x_test)
-    np.save("Models/y_test_multicnn_greys.npy", y_test)
+    np.save("Models/y_test_multicnn_greys.npy", y_test)"""
 
     strategy = tf.distribute.OneDeviceStrategy(device='/GPU:0')
     with strategy.scope():
@@ -132,6 +168,7 @@ def main():
         m9 = keras.layers.Conv2D(64, (7,7), padding="same", activation= "relu")(inp9)
 
         m = keras.layers.concatenate([m1, m2, m3, m4, m5, m6, m7, m8, m9])
+        #m = keras.layers.concatenate([m1, m2, m3, m4, m5, m6, m7])
         #m = keras.layers.ConvLSTM2D(8, (7,7), padding= "same", activation= "relu")(m)
         m = keras.layers.Conv2D(32, (3,3), padding="same", activation= "relu")(m)
         m = keras.layers.Conv2D(16, (3,3), padding="same", activation= "relu")(m)
@@ -139,23 +176,26 @@ def main():
         m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
 
         model = keras.models.Model([inp, inp2, inp3, inp4, inp5, inp6, inp7, inp8, inp9], m)
-        model.compile(loss= 'binary_crossentropy', optimizer= 'Adam')
+        #model = keras.models.Model([inp, inp2, inp3, inp4, inp5, inp6, inp7], m)
+        model.compile(loss= 'mae', optimizer= 'Adam')
 
         print(model.summary())
 
-        early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= 6, restore_best_weights= True)
+        early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= 'val_loss', patience= 4)
 
         board = TensorBoard(log_dir= 'logs/{}'.format(name))
 
         t = (x_train[:,0], x_train[:,1], x_train[:,2], x_train[:,3], x_train[:,4], x_train[:,5], x_train[:,6], x_train[:,7], x_train[:,8])
         v = (x_validation[:,0], x_validation[:,1], x_validation[:,2], x_validation[:,3], x_validation[:,4], x_validation[:,5], x_validation[:,6], x_validation[:,7], x_validation[:,8])
+        #t = (x_train[:,0], x_train[:,1], x_train[:,2], x_train[:,3], x_train[:,4], x_train[:,5], x_train[:,6])
+        #v = (x_validation[:,0], x_validation[:,1], x_validation[:,2], x_validation[:,3], x_validation[:,4], x_validation[:,5], x_validation[:,6])
 
         model.fit(
             t, 
             y_train,
-            batch_size = batch_size,
-            epochs = epochs,
+            batch_size = 4,
+            epochs = 150,
             validation_data= (v, y_validation),
             callbacks= [early_stopping, reduce_lr]
         )
@@ -167,18 +207,19 @@ def main():
             example = example.reshape(1, *example.shape[:])
             print(example.shape)
             new_prediction = model.predict((example[:,0], example[:,1], example[:,2], example[:,3], example[:,4], example[:,5], example[:,6], example[:,7], example[:,8]))
+            #new_prediction = model.predict((example[:,0], example[:,1], example[:,2], example[:,3], example[:,4], example[:,5], example[:,6]))
             example = example.reshape(example.shape[1:])
             example = np.concatenate((example[1:], new_prediction), axis=0)
             print(example.shape)
 
         #predictions = example[:-window]
-        print(example.shape)
-        fig, axes = plt.subplots(2,window, figsize= (20,4))
-        for idx, ax in enumerate(axes[0]):
-            ax.imshow((example[idx]), cmap='gray')
-            ax.set_title("Frame {}".format(idx+3))
-            ax.axis("off")
-        plt.show()
+        #print(example.shape)
+        #fig, axes = plt.subplots(2,window, figsize= (20,4))
+        #for idx, ax in enumerate(axes[0]):
+        #    ax.imshow((example[idx]), cmap='gray')
+        #    ax.set_title("Frame {}".format(idx+3))
+        #    ax.axis("off")
+        #plt.show()
 
         #prediction = model.predict((example[:,0], example[:,1]))
         #print(prediction.shape)
@@ -189,8 +230,9 @@ def main():
         print(x_test.shape)
 
         err = model.evaluate((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6], x_test[:,7], x_test[:,8]), y_test, batch_size= 2)
+        #err = model.evaluate((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6]), y_test, batch_size= 2)
         print("El error del modelo es: {}".format(err))
-        preds = model.predict((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6], x_test[:,7], x_test[:,8]), batch_size= 2)
+        """preds = model.predict((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6], x_test[:,7], x_test[:,8]), batch_size= 2)
         print(preds.shape)
         x_test_new = add_last(x_test, preds[:])
         preds2 = model.predict((x_test_new[:,0],x_test_new[:,1], x_test_new[:,2], x_test_new[:,3], x_test_new[:,4], x_test_new[:,5], x_test_new[:,6], x_test_new[:,7], x_test_new[:,8]), batch_size= 2)
@@ -203,7 +245,12 @@ def main():
         print("PREDSS",res_forecast.shape)
 
         #predictions = model.predict((x_test[:,0], x_test[:,1]))
-        np.save('Models/PredictionMultiCNN_forecast.npy', res_forecast)
+        np.save('Models/PredictionMultiCNN_forecast.npy', res_forecast)"""
+        forecast = map_forecast_recursive(model, x_test, horizon)
+        forecast_name = "Models/{}".format(name)
+        model.save(forecast_name+'.keras')
+        np.save(forecast_name+'.npy', forecast)
+        print("Pronósticos almacenados en: {}".format(forecast_name))
 
 if __name__ == '__main__':
-    main()
+    main('Conv-LSTM_1.json')

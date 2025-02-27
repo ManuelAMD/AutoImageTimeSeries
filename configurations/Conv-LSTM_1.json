@@ -15,7 +15,7 @@
     "epochs":150,
     "batch_size":4,
     "horizon":12,
-    "window_size":13,
+    "window_size":8,
     "fitness_function": "f1-score",
     "optimizer":"adam",
     "host":"localhost",
@@ -31,7 +31,7 @@
     "exploration_early_stopping_patience":5,
     "hall_of_fame_size":10,
     "deep_training_epochs":50,
-    "deep_training_early_stopping_patience":15,
+    "deep_training_early_stopping_patience":20,
     "train_gpu": 1,
     "classes": [0, 255, 220, 177, 119, 70, 35]
 }
