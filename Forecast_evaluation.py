@@ -411,13 +411,15 @@ if __name__ == "__main__":
     #w=7
     #main('DroughtDataset_model_testing_1740657903.npy','Conv-LSTM_1.json', 12, True)
       #ViVitLayers=2 Heads=4
-    main('DroughtDataset_model_testing_1740666525.npy','Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_1740666525.npy','Conv-LSTM_1.json', 12, True)
       #ViVitLayers=2 Heads=2
-    main('DroughtDataset_model_testing_1740666407.npy','Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_1740666407.npy','Conv-LSTM_1.json', 12, True)
       #ViVitLayers=1 Heads=2
-    main('DroughtDataset_model_testing_1740666277.npy','Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_1740666277.npy','Conv-LSTM_1.json', 12, True)
       #ViVitLayers=1 Heads=4
-    main('DroughtDataset_model_testing_1740666131.npy','Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_1740666131.npy','Conv-LSTM_1.json', 12, True)
+
+    main('DroughtDataset_model_testing_1743006558.npy','Conv-LSTM_1.json', 12, True)
 
     #W=8
     #main('DroughtDataset_model_testing_1740657199.npy','Conv-LSTM_1.json', 12, True)

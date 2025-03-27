@@ -28,14 +28,14 @@ WEIGHT_DECAY = 1e-5
 EPOCHS = 60
 
 # TUBELET EMBEDDING
-PATCH_SIZE = (8, 8, 8)
+PATCH_SIZE = (3, 3, 3)
 NUM_PATCHES = (INPUT_SHAPE[0] // PATCH_SIZE[0]) ** 2
 
 # ViViT ARCHITECTURE
 LAYER_NORM_EPS = 1e-6
 PROJECTION_DIM = 128
-NUM_HEADS = 8
-NUM_LAYERS = 8
+NUM_HEADS = 4
+NUM_LAYERS = 2
 
 def download_and_prepare_dataset(data_info: dict):
     """Utility function to download the dataset.
