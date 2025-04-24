@@ -6,8 +6,10 @@ import cv2
 horizon = 12
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1731702460.npy")
 #forecasts = np.load("Models/DiferencesNaive6.npy")
-forecasts = np.load("Models/DiferencesForecast9Model_MultiCNN_testing_1740655076.npy")
-original = np.load("Models/DiferencesOriginal9.npy")
+#forecasts = np.load("Models/DiferencesForecast9Model_MultiCNN_testing_1740655076.npy")
+#original = np.load("Models/DiferencesOriginal9.npy")
+forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1745498089.npy")
+original = np.load("Models/DiferencesOriginal6.npy")
 #naive = np.load("Models/DiferencesNaive6.npy")
 
 #naive = naive.reshape(naive.shape[:-1])
@@ -35,7 +37,7 @@ for i in range(len(original)):
 
     cv2.imshow('diff', result)
     cv2.waitKey()
-    cv2.imwrite("GeneratedImageComparation/DifferenceCNNArticulo_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceFragmentation4Articulo_Sahir_t+{}.png".format(i), result)
 
 """for i in range(len(original)):
     diff = 255 - cv2.absdiff(naive[i], original[i])

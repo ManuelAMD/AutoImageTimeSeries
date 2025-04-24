@@ -73,7 +73,7 @@ def model2(inp, channels):
     m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
-    m = keras.layers.Dropout(0.25)(m)
+    #m = keras.layers.Dropout(0.25)(m)
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
@@ -166,7 +166,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
             return
 
         inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-        m = model7(inp, channels)
+        m = model2(inp, channels)
 
         model = keras.models.Model(inp, m)
         model.compile(loss = 'mae', optimizer= optimizer)

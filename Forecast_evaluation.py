@@ -7,6 +7,7 @@ from concurrent.futures import ProcessPoolExecutor
 from tqdm import tqdm
 
 from app.data_treatment.load_imgs import *
+from mapPreprocessing import *
 import matplotlib.pyplot as plt
 from app.common.color_tools import *
 from PIL import Image
@@ -397,9 +398,36 @@ def main(forecast_path, config_file, h: int, display= False):
         df_combinado = pd.concat([df_err_pronostico, df_err_naive, df_cm_f, df_cm_res_f, df_cm_conclusion_f, df_cm_n, df_cm_res_n, df_cm_conclusion_n], axis= 1)
         df_combinado.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_h_'+str(i+1)+'.xlsx', index= False)
 
+def main_frag(forecast_path, config_file, h: int, display= False, frag_number= 2):
+    fp = forecast_path[:-4]
+    data = []
+    for i in range(frag_number*frag_number):
+        path_name = fp+'_'+str(i)+'.npy'
+        forecast_fragment = np.load("Models/{}".format(path_name))[:,0]
+        data.append(forecast_fragment)
+        print(forecast_fragment.shape)
 
+    p = Preprocessing()
+    data = p.fragment_reconstruction(data, frag_number, max_filter_size=5)
+    data = np.array(data)
+    data = data.reshape(data.shape[0], h, data.shape[1], data.shape[2], data.shape[3])
+    print(data.shape)
+    print(fp)
+    np.save("Models/{}.npy".format(fp), data)
+    main(fp+'.npy', config_file, h, display)
 
 if __name__ == "__main__":
+    #Dimensionality reduction exp
+    #No sirve
+    #main('DroughtDataset_model_testing_1744189565.npy','Conv-LSTM_1.json', 1, True)
+    #2x2 = 4 fragmentos 
+    #main_frag('DroughtDataset_model_testing_1745413473.npy','Conv-LSTM_1.json', 1, True, 2)
+    #3x3 = 9 fragmentos
+    #main_frag('DroughtDataset_model_testing_1745491125.npy','Conv-LSTM_1.json', 1, True, 3)
+    #4x4 = 16 fragmentos
+    main_frag('DroughtDataset_model_testing_1745498089.npy','Conv-LSTM_1.json', 1, True, 4)
+
+
     #Multi-CNN
     #W=7
     #main('Model_MultiCNN_testing_1740654153.npy','Conv-LSTM_1.json', 12, True)
@@ -419,7 +447,7 @@ if __name__ == "__main__":
       #ViVitLayers=1 Heads=4
     #main('DroughtDataset_model_testing_1740666131.npy','Conv-LSTM_1.json', 12, True)
 
-    main('DroughtDataset_model_testing_1743006558.npy','Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_1743006558.npy','Conv-LSTM_1.json', 12, True)
 
     #W=8
     #main('DroughtDataset_model_testing_1740657199.npy','Conv-LSTM_1.json', 12, True)

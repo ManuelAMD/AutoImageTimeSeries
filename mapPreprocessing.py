@@ -256,42 +256,107 @@ class Preprocessing:
                 print(key_points_rows[i][0], key_points_rows[i][1])
                 print(key_points_cols[j][0], key_points_cols[j][1])
                 sub_img = data[:, key_points_rows[i][0] : key_points_rows[i][1], key_points_cols[j][0] : key_points_cols[j][1]]
+                plt.imshow(sub_img[0], cmap="gray")
+                plt.show()
                 sub_images.append(sub_img)
-        print(np.array(sub_images).shape)
+        #print(np.array(sub_images).shape)
         return sub_images
+    
+    def fragment_reconstruction(self, data, frag_size= 2, max_filter_size= 3):
+        print(data[0].shape)
+        index = 0
+        extra_pixels = math.floor(max_filter_size/2)
+        new_out = np.zeros((data[0].shape[0], (data[0].shape[1]-extra_pixels)*frag_size, (data[0].shape[2]-extra_pixels)*frag_size))
+        new_out = new_out.reshape(new_out.shape[0], new_out.shape[1], new_out.shape[2], 1)
+        print(new_out.shape)
+        actual_data = []
+        for i in range(frag_size):
+            for j in range(frag_size):
+                print(index)
+                print(data[index].shape)
+                if i == 0:
+                    if j == 0:
+                        actual_data = data[index][:, :-extra_pixels, :-extra_pixels]
+                    elif j == frag_size-1:
+                        actual_data = data[index][:, :-extra_pixels, extra_pixels:]
+                    else:
+                        actual_data = data[index][:, :-extra_pixels, extra_pixels:-extra_pixels]
+                elif i == frag_size-1:
+                    if j == 0:
+                        actual_data = data[index][:, extra_pixels:, :-extra_pixels]
+                    elif j == frag_size-1:
+                        actual_data = data[index][:, extra_pixels:, extra_pixels:]
+                    else:
+                        actual_data = data[index][:, extra_pixels:, extra_pixels:-extra_pixels]
+                else:
+                    if j == 0:
+                        actual_data = data[index][:, extra_pixels:-extra_pixels, :-extra_pixels]
+                    elif j == frag_size-1:
+                        actual_data = data[index][:, extra_pixels:-extra_pixels, extra_pixels:]
+                    else:
+                        actual_data = data[index][:, extra_pixels:-extra_pixels, extra_pixels:-extra_pixels]
+                print(actual_data.shape)
+                #print(actual_data[0])
+                new_out[:, actual_data.shape[1]*i : (actual_data.shape[1]*i) + actual_data.shape[1],  actual_data.shape[2]*j : (actual_data.shape[2]*j) + actual_data.shape[2]] += actual_data
+                index += 1
+        print(new_out.shape)
+        plt.imshow(new_out[0], cmap="gray")
+        plt.show()
+        #print(new_out[0])
+        return new_out
+
 
     
     def create_STI_dataset_fragmented(self, window_size, train_float= 0.7, validation_float= 0.2, save_test= True, size=2, max_filter_size=3):
         x = self.data
 
+        plt.imshow(x[0], cmap="gray")
+        plt.show()
+
         sub_data = self.fragmented(size, x, max_filter_size)
-        raise
-
-        x = Preprocessing.agroup_window(x, window_size)
-        print(x.shape)
-        x_train = x[: int(len(x) * train_float)]
-        x_test = x[int(len(x) * train_float) :]
-        div_part = (1-validation_float)
-        x_validation = x_train[int(len(x_train) * div_part) :]
-        x_train = x_train[: int(len(x_train) * div_part)]
+        #result_data = self.fragment_reconstruction(sub_data, size)
+        #print((x[0]==result_data[0]).all())
+        x_test_frags = []
+        x_train_frags = []
+        x_validation_frags = []
+        y_test_frags = []
+        y_train_frags = []
+        y_validation_frags = []
+        res_rows = sub_data[0].shape[1]
+        res_cols = sub_data[0].shape[2]
         
-        x_train = x_train.reshape(len(x_train), window_size, self.rows, self.cols, self.channels)
-        x_validation = x_validation.reshape(len(x_validation), window_size, self.rows, self.cols, self.channels)
-        x_test = x_test.reshape(len(x_test), window_size, self.rows, self.cols, self.channels)
-        print("Forma de datos de entrenamiento: {}".format(x_train.shape))
-        print("Forma de datos de validación: {}".format(x_validation.shape))
-        print("Forma de datos de pruebas: {}".format(x_test.shape))
+        for i in range(len(sub_data)):
+            x_part = Preprocessing.agroup_window(sub_data[i], window_size)
+            print(x.shape)
+            x_train = x_part[: int(len(x_part) * train_float)]
+            x_test = x_part[int(len(x_part) * train_float) :]
+            div_part = (1-validation_float)
+            x_validation = x_train[int(len(x_train) * div_part) :]
+            x_train = x_train[: int(len(x_train) * div_part)]
+            
+            x_train = x_train.reshape(len(x_train), window_size, sub_data[i].shape[1], sub_data[i].shape[2], self.channels)
+            x_validation = x_validation.reshape(len(x_validation), window_size, sub_data[i].shape[1], sub_data[i].shape[2], self.channels)
+            x_test = x_test.reshape(len(x_test), window_size, sub_data[i].shape[1], sub_data[i].shape[2], self.channels)
+            print("Forma de datos de entrenamiento: {}".format(x_train.shape))
+            print("Forma de datos de validación: {}".format(x_validation.shape))
+            print("Forma de datos de pruebas: {}".format(x_test.shape))
 
-        x_train, y_train = Preprocessing.create_shifted_frames_2(x_train)
-        x_validation, y_validation = Preprocessing.create_shifted_frames_2(x_validation)
-        x_test, y_test = Preprocessing.create_shifted_frames_2(x_test)
-        print("Training dataset shapes: {}, {}".format(x_train.shape, y_train.shape))
-        print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validation.shape))
-        print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
+            x_train, y_train = Preprocessing.create_shifted_frames_2(x_train)
+            x_validation, y_validation = Preprocessing.create_shifted_frames_2(x_validation)
+            x_test, y_test = Preprocessing.create_shifted_frames_2(x_test)
+            print("Training dataset shapes: {}, {}".format(x_train.shape, y_train.shape))
+            print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validation.shape))
+            print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
 
-        np.save("Models/x_test_data.npy", x_test)
-        np.save("Models/y_test_data.npy", y_test)
-        return x_train, y_train, x_validation, y_validation, x_test, y_test
+            #np.save("Models/x_test_data.npy", x_test)
+            #np.save("Models/y_test_data.npy", y_test)
+            x_train_frags.append(x_train)
+            y_train_frags.append(y_train)
+            x_validation_frags.append(x_validation)
+            y_validation_frags.append(y_validation)
+            x_test_frags.append(x_test)
+            y_test_frags.append(y_test)
+        return x_train_frags, y_train_frags, x_validation_frags, y_validation_frags, x_test_frags, y_test_frags
 
 if __name__ == '__main__':
     names_file_path = 'NamesDroughtDataset.csv'
