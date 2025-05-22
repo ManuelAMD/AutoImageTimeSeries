@@ -11,6 +11,7 @@ from mapPreprocessing import *
 import matplotlib.pyplot as plt
 from app.common.color_tools import *
 from PIL import Image
+import keras
 from sklearn.metrics import mean_absolute_error, mean_squared_error, root_mean_squared_error, mean_absolute_percentage_error
 
 def read_json_file(filename):
@@ -416,6 +417,32 @@ def main_frag(forecast_path, config_file, h: int, display= False, frag_number= 2
     np.save("Models/{}.npy".format(fp), data)
     main(fp+'.npy', config_file, h, display)
 
+def main_autoencoder(forecast_path, config_file, h: int, display= False, cod_parts=2, decoder_name= "actual_decoder"):
+    fp = forecast_path[:-4]
+    data = []
+    for i in range(cod_parts):
+        path_name = fp+'_'+str(i)+'.npy'
+        forecast_coded = np.load("Models/{}".format(path_name))[:,0]
+        data.append(forecast_coded)
+        plt.imshow(forecast_coded[0], cmap="gray")
+        plt.show()
+
+        #print(forecast_coded.shape)
+    
+    #Checar las posiciones correctas de las imagenes codificadas, el orden importa mucho
+    data = np.array(data)
+    data = np.moveaxis(data, 0, -1)
+    data = data.reshape(data.shape[0], data.shape[1], data.shape[2], cod_parts)
+    print(data.shape)
+    model = keras.models.load_model('Models/{}.h5'.format(decoder_name))
+    data_decoded = model.predict(data)
+    data_decoded = data_decoded.reshape(data_decoded.shape[0], h, data_decoded.shape[1], data_decoded.shape[2], data_decoded.shape[3])
+    print(data_decoded.shape)
+    print(fp)
+    np.save("Models/{}.npy".format(fp), data_decoded)
+    main(fp+'.npy', config_file, h, display)
+
+
 if __name__ == "__main__":
     #Dimensionality reduction exp
     #No sirve
@@ -425,8 +452,24 @@ if __name__ == "__main__":
     #3x3 = 9 fragmentos
     #main_frag('DroughtDataset_model_testing_1745491125.npy','Conv-LSTM_1.json', 1, True, 3)
     #4x4 = 16 fragmentos
-    main_frag('DroughtDataset_model_testing_1745498089.npy','Conv-LSTM_1.json', 1, True, 4)
+    #main_frag('DroughtDataset_model_testing_1745498089.npy','Conv-LSTM_1.json', 1, True, 4)
 
+    #Autoencoder reduction
+    #OUt 4
+    #main_autoencoder('DroughtDataset_model_testing_1747304874.npy', 'Conv-LSTM_1.json', 1, True, 4)
+    #Out 8
+    #main_autoencoder('DroughtDataset_model_testing_1747311227.npy', 'Conv-LSTM_1.json', 1, True, 8)
+    #Config #1
+    #main_autoencoder('DroughtDataset_model_testing_1747658342.npy', 'Conv-LSTM_1.json', 1, True, 3)
+    #Config #2
+    #main_autoencoder('DroughtDataset_model_testing_1747739072.npy', 'Conv-LSTM_1.json', 1, True, 2)
+    #Config #3
+    #main_autoencoder('DroughtDataset_model_testing_1747746488.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_3")
+    #Config #4
+    main_autoencoder('DroughtDataset_model_testing_1747913078.npy', 'Conv-LSTM_1.json', 1, True, 8, "actual_decoder_conf_4")
+
+    #Config #7
+    #main_autoencoder('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 1, True, 2)
 
     #Multi-CNN
     #W=7

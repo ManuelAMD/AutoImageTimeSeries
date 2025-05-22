@@ -174,6 +174,9 @@ class Preprocessing:
     def save_data_numpy_array(self, path):
         np.save(path, self.data)
 
+    def get_full_data(self):
+        return self.data
+
     def create_STI_dataset(self, window_size, train_float= 0.7, validation_float= 0.2, save_test= True):
         x = self.data
         x = Preprocessing.agroup_window(x, window_size)
@@ -304,6 +307,54 @@ class Preprocessing:
         plt.show()
         #print(new_out[0])
         return new_out
+    
+    def autoencoder_codification(self, data, window_size, train_float= 0.7, validation_float= 0.2, save_test= True):
+        x = data
+        print(x.shape)
+        
+        x_train_cod = []
+        x_validation_cod = []
+        x_test_cod = []
+        y_train_cod = []
+        y_validation_cod = []
+        y_test_cod = []
+        sub_data = x[:,:,:,0]
+        #print(sub_data.shape)
+        for i in range(x.shape[-1]):
+            sub_data = x[:,:,:,i]
+            sub_data = sub_data.reshape(sub_data.shape[0], sub_data.shape[1], sub_data.shape[2], 1)
+            print(sub_data.shape)
+            x_part = Preprocessing.agroup_window(sub_data, window_size)
+            print(x_part.shape)
+            x_train = x_part[: int(len(x_part) * train_float)]
+            x_test = x_part[int(len(x_part) * train_float) :]
+            div_part = (1-validation_float)
+            x_validation = x_train[int(len(x_train) * div_part) :]
+            x_train = x_train[: int(len(x_train) * div_part)]
+            
+            x_train = x_train.reshape(len(x_train), window_size, sub_data.shape[1], sub_data.shape[2], self.channels)
+            x_validation = x_validation.reshape(len(x_validation), window_size, sub_data.shape[1], sub_data.shape[2], self.channels)
+            x_test = x_test.reshape(len(x_test), window_size, sub_data.shape[1], sub_data.shape[2], self.channels)
+            print("Forma de datos de entrenamiento: {}".format(x_train.shape))
+            print("Forma de datos de validación: {}".format(x_validation.shape))
+            print("Forma de datos de pruebas: {}".format(x_test.shape))
+
+            x_train, y_train = Preprocessing.create_shifted_frames_2(x_train)
+            x_validation, y_validation = Preprocessing.create_shifted_frames_2(x_validation)
+            x_test, y_test = Preprocessing.create_shifted_frames_2(x_test)
+            print("Training dataset shapes: {}, {}".format(x_train.shape, y_train.shape))
+            print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validation.shape))
+            print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
+
+            #np.save("Models/x_test_data.npy", x_test)
+            #np.save("Models/y_test_data.npy", y_test)
+            x_train_cod.append(x_train)
+            y_train_cod.append(y_train)
+            x_validation_cod.append(x_validation)
+            y_validation_cod.append(y_validation)
+            x_test_cod.append(x_test)
+            y_test_cod.append(y_test)
+        return x_train_cod, y_train_cod, x_validation_cod, y_validation_cod, x_test_cod, y_test_cod
 
 
     
