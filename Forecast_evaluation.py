@@ -454,7 +454,7 @@ if __name__ == "__main__":
     #5x5 = 25 fragmentos
     #main_frag('DroughtDataset_model_testing_1748950913.npy','Conv-LSTM_1.json', 1, True, 5)
     #6x6 = 36 fragmentos
-    main_frag('DroughtDataset_model_testing_1748968962.npy','Conv-LSTM_1.json', 1, True, 6)
+    #main_frag('DroughtDataset_model_testing_1748968962.npy','Conv-LSTM_1.json', 1, True, 6)
 
     #Autoencoder reduction
     #OUt 4
@@ -472,7 +472,7 @@ if __name__ == "__main__":
     #Config #5
     #main_autoencoder('DroughtDataset_model_testing_1748014367.npy', 'Conv-LSTM_1.json', 1, True, 6, "actual_decoder_conf_5")
     #Config #6
-    #main_autoencoder('DroughtDataset_model_testing_1748274964.npy', 'Conv-LSTM_1.json', 1, True, 4, "actual_decoder_conf_6")
+    #main_autoencoder('DroughtDataset_model_testing_1749027560.npy', 'Conv-LSTM_1.json', 1, True, 4, "actual_decoder_conf_6")
     #Config #7
     #main_autoencoder('DroughtDataset_model_testing_1748329014.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_7")
     #Config #8
@@ -483,8 +483,9 @@ if __name__ == "__main__":
     #main_autoencoder('DroughtDataset_model_testing_1748596184.npy', 'Conv-LSTM_1.json', 1, True, 8, "actual_decoder_conf_10")
     #Config #11
     #main_autoencoder('DroughtDataset_model_testing_1748871566.npy', 'Conv-LSTM_1.json', 1, True, 4, "actual_decoder_conf_11")
-    #Config #12
+    #Config #12 REHACER
     #main_autoencoder('DroughtDataset_model_testing_1748942897.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_12")
+    main_autoencoder('DroughtDataset_model_testing_1749031061.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_12")
     #Config #13
     #main_autoencoder('DroughtDataset_model_testing_1748944410.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_13")
     

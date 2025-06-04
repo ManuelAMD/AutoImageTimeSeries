@@ -194,7 +194,7 @@ def autoencoder_reduction(data, validation_part= 0.3):
     #x_val = x_val.reshape((x_val.shape[0], x_val.shape[1], x_val.shape[2], 1))
     #CMPBlocks = [[8, (3,3), "relu", (2,2)],
     #             [4, (3,3), "relu", (2,2)]]
-    CMPBlocks = conf_13()
+    CMPBlocks = conf_12()
     autoencoder, encoder, decoder = construct_autoencoder(CMPBlocks, (data.shape[1], data.shape[2], 1))
     es = keras.callbacks.EarlyStopping(monitor= 'val_loss', mode= 'min', patience= 10, restore_best_weights= True)
     autoencoder.compile(optimizer= "adam", loss="mae")
@@ -209,7 +209,7 @@ def autoencoder_reduction(data, validation_part= 0.3):
     # CAMBIAR EL NOMBRE DE LOS DECODER, ALMACENAR POR CONFIGURACIÓN PARA PODER REPETIR EXPERIMENTOS O EVALUACIÓN
     ##
 
-    decoder.save("Models/actual_decoder_conf_13.h5")
+    decoder.save("Models/actual_decoder_conf_12.h5")
     return encoded_data
 
 
