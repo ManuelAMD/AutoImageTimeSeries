@@ -145,11 +145,46 @@ def conf_6 ():
     #10,800 75% reduction
     return [[8, (3,3), "relu", (2,2)],
             [4, (3,3), "relu", (2,2)]]
+
 def conf_7 ():
     #5,400 87.5% reduction
     return [[4, (3,3), "relu", (2,2)],
             [2, (3,3), "relu", (2,2)]]
 
+def conf_8 ():
+    #22,700 % reduction
+    return [[2, (3,3), "relu", (2,2)],
+            [1, (3,3), "relu", (2,2)]]
+
+def conf_9 ():
+    #5,400 87.5% reduction
+    return [[64, (3,3), "relu", (2,2)],
+            [32, (3,3), "relu", (2,2)],
+            [16, (3,3), "relu", (2,2)]]
+
+def conf_10 ():
+    #5,400 87.5% reduction
+    return [[32, (3,3), "relu", (2,2)],
+            [16, (3,3), "relu", (2,2)],
+            [8, (3,3), "relu", (2,2)]]
+
+def conf_11 ():
+    #5,400 87.5% reduction
+    return [[16, (3,3), "relu", (2,2)],
+            [8, (3,3), "relu", (2,2)],
+            [4, (3,3), "relu", (2,2)]]
+
+def conf_12 ():
+    #5,400 87.5% reduction
+    return [[8, (3,3), "relu", (2,2)],
+            [4, (3,3), "relu", (2,2)],
+            [2, (3,3), "relu", (2,2)]]
+
+def conf_13 ():
+    #5,400 87.5% reduction
+    return [[4, (3,3), "relu", (2,2)],
+            [2, (3,3), "relu", (2,2)],
+            [1, (3,3), "relu", (2,2)]]
 
 def autoencoder_reduction(data, validation_part= 0.3):
     print(data.shape)
@@ -159,7 +194,7 @@ def autoencoder_reduction(data, validation_part= 0.3):
     #x_val = x_val.reshape((x_val.shape[0], x_val.shape[1], x_val.shape[2], 1))
     #CMPBlocks = [[8, (3,3), "relu", (2,2)],
     #             [4, (3,3), "relu", (2,2)]]
-    CMPBlocks = conf_4()
+    CMPBlocks = conf_13()
     autoencoder, encoder, decoder = construct_autoencoder(CMPBlocks, (data.shape[1], data.shape[2], 1))
     es = keras.callbacks.EarlyStopping(monitor= 'val_loss', mode= 'min', patience= 10, restore_best_weights= True)
     autoencoder.compile(optimizer= "adam", loss="mae")
@@ -174,7 +209,7 @@ def autoencoder_reduction(data, validation_part= 0.3):
     # CAMBIAR EL NOMBRE DE LOS DECODER, ALMACENAR POR CONFIGURACIÓN PARA PODER REPETIR EXPERIMENTOS O EVALUACIÓN
     ##
 
-    decoder.save("Models/actual_decoder.h5")
+    decoder.save("Models/actual_decoder_conf_13.h5")
     return encoded_data
 
 
@@ -269,7 +304,6 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
             if err > 0.1 and count < 3:
                 print("Previous values i: {} count:{}".format(i, count))
                 count += 1
-                i -= 1
                 print("Not accomplish enough loss value part {} times {}".format(i, count))
                 continue
             print("El error del modelo es: {}".format(err))

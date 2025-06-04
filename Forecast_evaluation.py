@@ -445,14 +445,16 @@ def main_autoencoder(forecast_path, config_file, h: int, display= False, cod_par
 
 if __name__ == "__main__":
     #Dimensionality reduction exp
-    #No sirve
-    #main('DroughtDataset_model_testing_1744189565.npy','Conv-LSTM_1.json', 1, True)
     #2x2 = 4 fragmentos 
     #main_frag('DroughtDataset_model_testing_1745413473.npy','Conv-LSTM_1.json', 1, True, 2)
     #3x3 = 9 fragmentos
     #main_frag('DroughtDataset_model_testing_1745491125.npy','Conv-LSTM_1.json', 1, True, 3)
     #4x4 = 16 fragmentos
     #main_frag('DroughtDataset_model_testing_1745498089.npy','Conv-LSTM_1.json', 1, True, 4)
+    #5x5 = 25 fragmentos
+    #main_frag('DroughtDataset_model_testing_1748950913.npy','Conv-LSTM_1.json', 1, True, 5)
+    #6x6 = 36 fragmentos
+    main_frag('DroughtDataset_model_testing_1748968962.npy','Conv-LSTM_1.json', 1, True, 6)
 
     #Autoencoder reduction
     #OUt 4
@@ -466,10 +468,26 @@ if __name__ == "__main__":
     #Config #3
     #main_autoencoder('DroughtDataset_model_testing_1747746488.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_3")
     #Config #4
-    main_autoencoder('DroughtDataset_model_testing_1747913078.npy', 'Conv-LSTM_1.json', 1, True, 8, "actual_decoder_conf_4")
-
+    #main_autoencoder('DroughtDataset_model_testing_1747913078.npy', 'Conv-LSTM_1.json', 1, True, 8, "actual_decoder_conf_4")
+    #Config #5
+    #main_autoencoder('DroughtDataset_model_testing_1748014367.npy', 'Conv-LSTM_1.json', 1, True, 6, "actual_decoder_conf_5")
+    #Config #6
+    #main_autoencoder('DroughtDataset_model_testing_1748274964.npy', 'Conv-LSTM_1.json', 1, True, 4, "actual_decoder_conf_6")
     #Config #7
-    #main_autoencoder('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 1, True, 2)
+    #main_autoencoder('DroughtDataset_model_testing_1748329014.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_7")
+    #Config #8
+    #main_autoencoder('DroughtDataset_model_testing_1748331917.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_8")
+    #Config #9
+    #main_autoencoder('DroughtDataset_model_testing_1748341644.npy', 'Conv-LSTM_1.json', 1, True, 16, "actual_decoder_conf_9")
+    #Config #10
+    #main_autoencoder('DroughtDataset_model_testing_1748596184.npy', 'Conv-LSTM_1.json', 1, True, 8, "actual_decoder_conf_10")
+    #Config #11
+    #main_autoencoder('DroughtDataset_model_testing_1748871566.npy', 'Conv-LSTM_1.json', 1, True, 4, "actual_decoder_conf_11")
+    #Config #12
+    #main_autoencoder('DroughtDataset_model_testing_1748942897.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_12")
+    #Config #13
+    #main_autoencoder('DroughtDataset_model_testing_1748944410.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_13")
+    
 
     #Multi-CNN
     #W=7

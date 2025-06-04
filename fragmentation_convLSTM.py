@@ -93,7 +93,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     preprocess = Preprocessing()
     preprocess.load_from_numpy_array(data_name, rows, cols, channels)
     
-    x_train_frags, y_train_frags, x_validation_frags, y_validation_frags, x_test_frags, y_test_frags = preprocess.create_STI_dataset_fragmented(window, size=4, max_filter_size=5)
+    x_train_frags, y_train_frags, x_validation_frags, y_validation_frags, x_test_frags, y_test_frags = preprocess.create_STI_dataset_fragmented(window, size=6, max_filter_size=5)
 
     print(len(x_train_frags))
     print(x_train_frags[0].shape)
