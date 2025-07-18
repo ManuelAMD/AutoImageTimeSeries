@@ -9,6 +9,10 @@ horizon = 12
 #forecasts = np.load("Models/DiferencesForecast9Model_MultiCNN_testing_1740655076.npy")
 #original = np.load("Models/DiferencesOriginal9.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1745498089.npy")
+
+#No reduction method
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1749213320.npy")
+
 #Fragmentation experiments
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1745413473.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1745491125.npy")
@@ -17,9 +21,17 @@ horizon = 12
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1748968962.npy")
 
 #Autoencoder experiments
+#\
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747658342.npy")
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1749467520.npy")
+#\
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747739072.npy")
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1749903771.npy")
+forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1752835210.npy")
+#\
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747746488.npy")
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1749823787.npy")
+#\
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747913078.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1748014367.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1749027560.npy")
@@ -29,7 +41,7 @@ horizon = 12
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1748596184.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1748871566.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1749031061.npy")
-forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1748944410.npy")
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1748944410.npy")
 
 original = np.load("Models/DiferencesOriginal6.npy")
 #naive = np.load("Models/DiferencesNaive6.npy")
@@ -59,7 +71,9 @@ for i in range(len(original)):
 
     cv2.imshow('diff', result)
     cv2.waitKey()
-    cv2.imwrite("GeneratedImageComparation/DifferenceCodification13Articulo_Sahir_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceNoReductionArticulo_Sahir_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceFragmentation6Articulo_Sahir_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceCodification2Articulo_Sahir_t+{}.png".format(i), result)
 
 """for i in range(len(original)):
     diff = 255 - cv2.absdiff(naive[i], original[i])

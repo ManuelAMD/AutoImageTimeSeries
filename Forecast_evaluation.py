@@ -205,7 +205,10 @@ def confusion_matrix_evaluation(confusion_matrix):
 
     return np.array([TP, TN, FP, FN]), np.array([precision, recall, f1_score, accuracy])
 
-def main(forecast_path, config_file, h: int, display= False):
+#El parámetro mode es para especificar a que tipo de estrategia de multiples pasos pertenece
+#Recursiva = 1
+#Directa = 2
+def main(forecast_path, config_file, h: int, display= False, mode=1):
     config_json = read_json_file(config_file)
     classes = np.array(config_json['classes'])
     rows = config_json['rows']
@@ -221,34 +224,46 @@ def main(forecast_path, config_file, h: int, display= False):
     print(x_test.shape)
     print(y_test.shape)
 
-    #Generar cubos de y dependiendo del horizonte para evaluar
-    y_test = get_cubes(y_test, horizon)
+    if mode == 1:
+        #Generar cubos de y dependiendo del horizonte para evaluar
+        y_test = get_cubes(y_test, horizon)
 
-    #Para el modelo naive se toman todos los elementos de test hasta el tamaño del horizonte, 
-    # para tratarlos correctamente
-    naive = x_test[: -horizon]
-    #Debido a la forma del funcionamiento del naive, las evaluaciones del mismo tendrian h
-    # valores menos que los datos, para corregir esto, se toma desde el primer elmento hasta 
-    # los últimos h-1
-    #Por qué estas posiciones?
-    data = forecasts[: -horizon]
-    #data = forecasts [1: -(horizon-1)]
-    if horizon == 1:
-        data = forecasts[1:]
-    else: 
-        data = forecasts [1: -(horizon-1)]
-    #data = data [1: -(horizon-1)]
-    #data = data[horizon :]
-    #De todos los datos solo se toman los datos pronosticados, los últimos h
-    #data = data[:, -horizon:]
-    data = data[:, :horizon]
+        #Para el modelo naive se toman todos los elementos de test hasta el tamaño del horizonte, 
+        # para tratarlos correctamente
+        naive = x_test[: -horizon]
+        #Debido a la forma del funcionamiento del naive, las evaluaciones del mismo tendrian h
+        # valores menos que los datos, para corregir esto, se toma desde el primer elmento hasta 
+        # los últimos h-1
+        #Por qué estas posiciones?
+        data = forecasts[: -horizon]
+        #data = forecasts [1: -(horizon-1)]
+        if horizon == 1:
+            data = forecasts[1:]
+        else: 
+            data = forecasts [1: -(horizon-1)]
+        #data = data [1: -(horizon-1)]
+        #data = data[horizon :]
+        #De todos los datos solo se toman los datos pronosticados, los últimos h
+        #data = data[:, -horizon:]
+        data = data[:, :horizon]
+        #naive = naive[:, -horizon:]
+        aux_naive = []
+        for ele in naive:
+            aux = [ele[-1] for _ in range(horizon)]
+            aux_naive.append(np.array(aux))
+        naive = np.array(aux_naive)
+        print("HEY")
 
-    #naive = naive[:, -horizon:]
-    aux_naive = []
-    for ele in naive:
-        aux = [ele[-1] for _ in range(horizon)]
-        aux_naive.append(np.array(aux))
-    naive = np.array(aux_naive)
+    elif mode == 2:
+        naive = []
+        #Se tomará la ultima parte del x_test, y a su vez cada imagen del y_test hasta h-1
+        for i in range(len(x_test)):
+            aux = x_test[i,-1]
+            aux = aux.reshape(1, *aux.shape[:])
+            aux = np.concatenate((aux, y_test[i,:h-1]), axis=0)
+            naive.append(aux)
+        naive = np.array(naive)
+        data = forecasts
 
     #Formato de los datos, valores enteros
     data = data * 255
@@ -307,9 +322,9 @@ def main(forecast_path, config_file, h: int, display= False):
     naive = naive.astype(np.uint8)
     data = data.astype(np.uint8)
 
-    np.save("Models/DiferencesOriginal"+ str(window) +".npy", y_test[10])
-    np.save("Models/DiferencesNaive"+ str(window) +".npy", naive[10])
-    np.save("Models/DiferencesForecast"+ str(window) + forecast_path[:-4] +".npy", data[10])
+    np.save("Models/DiferencesOriginal"+ str(window) +".npy", y_test[200])
+    np.save("Models/DiferencesNaive"+ str(window) +".npy", naive[200])
+    np.save("Models/DiferencesForecast"+ str(window) + forecast_path[:-4] +".npy", data[200])
     
 
     l_class = len(classes)
@@ -444,6 +459,39 @@ def main_autoencoder(forecast_path, config_file, h: int, display= False, cod_par
 
 
 if __name__ == "__main__":
+    #Multi-step forecasting strategy exp
+    #Recursive
+    #main('DroughtDataset_model_testing_1749213320.npy', 'Conv-LSTM_1.json', 12, False)
+    #Direct
+    #main('DroughtDataset_model_testing_1750083438.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1750162155.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #MIMO
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #DirRec
+    #main('DroughtDataset_model_testing_1751026745.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #DIRMO
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 1, False)
+
+    #No Reduction method
+    #main('DroughtDataset_model_testing_1749213320.npy', 'Conv-LSTM_1.json', 1, False)
+
+    
     #Dimensionality reduction exp
     #2x2 = 4 fragmentos 
     #main_frag('DroughtDataset_model_testing_1745413473.npy','Conv-LSTM_1.json', 1, True, 2)
@@ -462,11 +510,16 @@ if __name__ == "__main__":
     #Out 8
     #main_autoencoder('DroughtDataset_model_testing_1747311227.npy', 'Conv-LSTM_1.json', 1, True, 8)
     #Config #1
-    #main_autoencoder('DroughtDataset_model_testing_1747658342.npy', 'Conv-LSTM_1.json', 1, True, 3)
+    #main_autoencoder('DroughtDataset_model_testing_1747658342.npy', 'Conv-LSTM_1.json', 1, True, 3, "actual_decoder_conf_1")
+    #main_autoencoder('DroughtDataset_model_testing_1749467520.npy', 'Conv-LSTM_1.json', 1, True, 3, "actual_decoder_conf_1")
     #Config #2
-    #main_autoencoder('DroughtDataset_model_testing_1747739072.npy', 'Conv-LSTM_1.json', 1, True, 2)
-    #Config #3
+    #main_autoencoder('DroughtDataset_model_testing_1747739072.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
+    #main_autoencoder('DroughtDataset_model_testing_1749903771.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
+    main_autoencoder('DroughtDataset_model_testing_1752835210.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
+    #main_autoencoder('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
+    #Config #3 1752835210
     #main_autoencoder('DroughtDataset_model_testing_1747746488.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_3")
+    #main_autoencoder('DroughtDataset_model_testing_1749823787.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_3")
     #Config #4
     #main_autoencoder('DroughtDataset_model_testing_1747913078.npy', 'Conv-LSTM_1.json', 1, True, 8, "actual_decoder_conf_4")
     #Config #5
@@ -485,7 +538,7 @@ if __name__ == "__main__":
     #main_autoencoder('DroughtDataset_model_testing_1748871566.npy', 'Conv-LSTM_1.json', 1, True, 4, "actual_decoder_conf_11")
     #Config #12 REHACER
     #main_autoencoder('DroughtDataset_model_testing_1748942897.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_12")
-    main_autoencoder('DroughtDataset_model_testing_1749031061.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_12")
+    #main_autoencoder('DroughtDataset_model_testing_1749031061.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_12")
     #Config #13
     #main_autoencoder('DroughtDataset_model_testing_1748944410.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_13")
     

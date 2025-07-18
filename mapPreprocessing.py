@@ -127,9 +127,11 @@ class Preprocessing:
         new_data = [data[i : window + i] for i in range(len(data) - window + 1)]
         return np.array(new_data)
     
-    def create_shifted_frames(data):
-        x = data[:, 0 : data.shape[1] - 1, :, :]
-        y = data[:, 1 : data.shape[1], :, :]
+    def create_shifted_frames(data, horizon):
+        x = data[:, 0 : data.shape[1] - horizon, :, :]
+        #y = data[:, 1 : data.shape[1], :, :]
+        print("DATOSS {}, {}, {}".format(data.shape[1]-horizon, data.shape[1], horizon))
+        y = data[:, data.shape[1]-horizon : data.shape[1], :, :]
         return x, y
 
     def create_shifted_frames_2(data):
@@ -205,6 +207,37 @@ class Preprocessing:
         np.save("Models/y_test_data.npy", y_test)
         return x_train, y_train, x_validation, y_validation, x_test, y_test
     
+    def create_STI_multi_output(self, window, horizon, train_float= 0.7, validation_float= 0.2, save_test= True):
+        x = self.data
+        #Se agrega el tamaño del horizonte y se le resta 1 (este último para evitar que exista un elemento de más y no cambiar la función original)
+        window_size = window + horizon-1
+        x = Preprocessing.agroup_window(x, window_size)
+        print(x.shape)
+        x_train = x[: int(len(x) * train_float)]
+        x_test = x[int(len(x) * train_float) :]
+        div_part = (1-validation_float)
+        x_validation = x_train[int(len(x_train) * div_part) :]
+        x_train = x_train[: int(len(x_train) * div_part)]
+
+        x_train = x_train.reshape(len(x_train), window_size, self.rows, self.cols, self.channels)
+        x_validation = x_validation.reshape(len(x_validation), window_size, self.rows, self.cols, self.channels)
+        x_test = x_test.reshape(len(x_test), window_size, self.rows, self.cols, self.channels)
+        print("Forma de datos de entrenamiento: {}".format(x_train.shape))
+        print("Forma de datos de validación: {}".format(x_validation.shape))
+        print("Forma de datos de pruebas: {}".format(x_test.shape))
+
+        x_train, y_train = Preprocessing.create_shifted_frames(x_train, horizon)
+        x_validation, y_validation = Preprocessing.create_shifted_frames(x_validation, horizon)
+        x_test, y_test = Preprocessing.create_shifted_frames(x_test, horizon)
+        print("Training dataset shapes: {}, {}".format(x_train.shape, y_train.shape))
+        print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validation.shape))
+        print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
+
+        np.save("Models/x_test_data.npy", x_test)
+        np.save("Models/y_test_data.npy", y_test)
+        return x_train, y_train, x_validation, y_validation, x_test, y_test
+
+    
     def fragmented(self, frag_size, data, max_filter_size):
         print(data.shape)
         total_rows = data.shape[1]
@@ -212,10 +245,6 @@ class Preprocessing:
         key_points_rows = []
         key_points_cols = []
         extra_pixels = math.floor(max_filter_size/2)
-        #pixels_rows_amount = math.ceil(total_rows/frag_size)
-        #pixels_cols_amount = math.ceil(total_cols/frag_size)
-        #print(pixels_rows_amount)
-        #print(pixels_cols_amount)
         #Cortes de filas
         actual_rows = total_rows
         actual_cols = total_cols
