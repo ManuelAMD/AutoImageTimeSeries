@@ -182,7 +182,7 @@ def direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test
         y_validation_actual = y_validation[:,h]
         y_test_actual = y_test[:,h]
         inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-        m = model3(inp, channels)
+        m = model2(inp, channels)
         model = keras.models.Model(inp, m)
         model.compile(loss = 'mae', optimizer= optimizer)
         model.summary()
@@ -229,19 +229,31 @@ def direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test
     print("Pronósticos almacenados en: {}".format(forecast_name))
 
 def model_1_MIMO(inp, Total_output):
-    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu", data_format='channels_first')(inp)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu", data_format='channels_first')(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu", data_format='channels_first')(m)
-    #m = keras.layers.Dropout(0.25)(m)
-    m = keras.layers.Conv2D(Total_output, (3,3), activation= "sigmoid", padding= "same", data_format='channels_first')(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.Conv3D(1, (3,3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def model_2_MIMO(inp, Total_output):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.Conv3D(1, (3,3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
 def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value):
-    #inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-    inp = keras.layers.Input(shape= (None, x_train.shape[4], x_train.shape[2], x_train.shape[3]))
-    m = model_1_MIMO(inp, horizon)
+    inp = keras.layers.Input(shape= (x_train.shape[1:]))
+    print(inp)
+    #output_shape = keras.layers.Input(shape= (y_train.shape[1], *x_train.shape[2:]))
+    #inp_seq_length = keras.layers.Input(x_train.shape[1:])
+    #print(inp_seq_length)
+    #inp = keras.layers.Input(shape= (None, x_train.shape[4], x_train.shape[2], x_train.shape[3]))
+    m = model_2_MIMO(inp, horizon)
     model = keras.models.Model(inp, m)
     model.compile(loss = 'mae', optimizer= optimizer)
     #model.compile(loss = 'binary_crossentropy', optimizer= optimizer)
@@ -252,6 +264,7 @@ def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, 
     board = TensorBoard(log_dir='logs/{}'.format(name))
     epochs = config_json['epochs']
     batch_size = config_json['batch_size']
+    print(model.output_shape)
     model.fit(
         x_train, y_train,
         batch_size= batch_size,
@@ -357,10 +370,10 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     preprocess = Preprocessing()
     preprocess.load_from_numpy_array(data_name, rows, cols, channels)
     #For recursive strategy
-    x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
+    #x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
 
     #For direct, MIMO, DirRec
-    #x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_multi_output(window, horizon)
+    x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_multi_output(window, horizon)
 
     
     strategy = tf.distribute.MirroredStrategy()
@@ -379,13 +392,13 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
             return
         
         #Recursive strategy
-        recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
+        #recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
 
         #Direct strategy
         #direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
 
         #MIMO strategy
-        #MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
+        MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
 
         #DirRec strategy
         #DirRec_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)

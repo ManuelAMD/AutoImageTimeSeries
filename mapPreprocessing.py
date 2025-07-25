@@ -203,6 +203,14 @@ class Preprocessing:
         print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validation.shape))
         print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
 
+        #index = 0
+        #for n in x_train[0]:
+        #    cv2.imshow("d", n)
+        #    cv2.waitKey()
+        #for n in y_train[0]:
+        #    cv2.imshow("f", n)
+        #    cv2.waitKey()
+
         np.save("Models/x_test_data.npy", x_test)
         np.save("Models/y_test_data.npy", y_test)
         return x_train, y_train, x_validation, y_validation, x_test, y_test
@@ -229,6 +237,14 @@ class Preprocessing:
         x_train, y_train = Preprocessing.create_shifted_frames(x_train, horizon)
         x_validation, y_validation = Preprocessing.create_shifted_frames(x_validation, horizon)
         x_test, y_test = Preprocessing.create_shifted_frames(x_test, horizon)
+        #index = 0
+        #for n in x_train[0]:
+        #    cv2.imshow("d", n)
+        #    cv2.waitKey()
+        #for n in y_train[0]:
+        #    cv2.imshow("f", n)
+        #    cv2.waitKey()
+
         print("Training dataset shapes: {}, {}".format(x_train.shape, y_train.shape))
         print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validation.shape))
         print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))

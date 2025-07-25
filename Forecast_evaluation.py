@@ -262,8 +262,9 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
             aux = aux.reshape(1, *aux.shape[:])
             aux = np.concatenate((aux, y_test[i,:h-1]), axis=0)
             naive.append(aux)
-        naive = np.array(naive)
-        data = forecasts
+        naive = np.array(naive)[:-1]
+        data = forecasts[1:]
+        y_test = y_test[:-1]
 
     #Formato de los datos, valores enteros
     data = data * 255
@@ -276,6 +277,14 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
     print(data.shape)
     print(naive.shape)
     print(y_test.shape)
+
+    if display:
+        plt.imshow(y_test[0,1], cmap="gray")
+        plt.show()
+        plt.imshow(data[0,1], cmap="gray")
+        plt.show()
+        plt.imshow(naive[0,1], cmap="gray")
+        plt.show()
 
     #Mascara
     print("Aplicando mascara")
@@ -293,7 +302,9 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
 
     if display:
         plt.imshow(y_test[0,0], cmap="gray")
+        plt.show()
         plt.imshow(data[0,0], cmap="gray")
+        plt.show()
         plt.imshow(naive[0,0], cmap="gray")
         plt.show()
 
@@ -310,9 +321,9 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
     data = data.reshape(s[0], s[1], s[2], s[3], 1)
     
     if display:
-        plt.imshow(y_test[0,0], cmap="gray")
-        plt.imshow(data[0,0], cmap="gray")
-        plt.imshow(naive[0,0], cmap="gray")
+        plt.imshow(y_test[0,3], cmap="gray")
+        plt.imshow(data[0,3], cmap="gray")
+        plt.imshow(naive[0,3], cmap="gray")
         plt.show()
         
     
@@ -322,9 +333,9 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
     naive = naive.astype(np.uint8)
     data = data.astype(np.uint8)
 
-    np.save("Models/DiferencesOriginal"+ str(window) +".npy", y_test[200])
-    np.save("Models/DiferencesNaive"+ str(window) +".npy", naive[200])
-    np.save("Models/DiferencesForecast"+ str(window) + forecast_path[:-4] +".npy", data[200])
+    np.save("Models/DiferencesOriginal"+ str(window) +".npy", y_test[300])
+    np.save("Models/DiferencesNaive"+ str(window) +".npy", naive[300])
+    np.save("Models/DiferencesForecast"+ str(window) + forecast_path[:-4] +".npy", data[300])
     
 
     l_class = len(classes)
@@ -465,14 +476,16 @@ if __name__ == "__main__":
     #Direct
     #main('DroughtDataset_model_testing_1750083438.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_1750162155.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1753344963.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #MIMO
-    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model 2
+    main('DroughtDataset_model_testing_1753444629.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model 1
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
@@ -480,8 +493,10 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #DirRec
     #main('DroughtDataset_model_testing_1751026745.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Con validation sustituido
+    #main('DroughtDataset_model_testing_1753358970.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Con el validation normal
+    #main('DroughtDataset_model_testing_1753370981.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
@@ -515,7 +530,7 @@ if __name__ == "__main__":
     #Config #2
     #main_autoencoder('DroughtDataset_model_testing_1747739072.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
     #main_autoencoder('DroughtDataset_model_testing_1749903771.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
-    main_autoencoder('DroughtDataset_model_testing_1752835210.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
+    #main_autoencoder('DroughtDataset_model_testing_1752835210.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
     #main_autoencoder('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 1, True, 2, "actual_decoder_conf_2")
     #Config #3 1752835210
     #main_autoencoder('DroughtDataset_model_testing_1747746488.npy', 'Conv-LSTM_1.json', 1, True, 1, "actual_decoder_conf_3")
