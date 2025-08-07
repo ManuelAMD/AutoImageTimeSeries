@@ -13,7 +13,7 @@
     "train_size":0.7,
     "validation_size":0.2,
     "epochs":150,
-    "batch_size":4,
+    "batch_size":2,
     "horizon":12,
     "window_size":13,
     "fitness_function": "f1-score",
@@ -31,7 +31,7 @@
     "exploration_early_stopping_patience":5,
     "hall_of_fame_size":10,
     "deep_training_epochs":50,
-    "deep_training_early_stopping_patience":20,
+    "deep_training_early_stopping_patience":6,
     "train_gpu": 1,
     "classes": [0, 255, 220, 177, 119, 70, 35]
 }

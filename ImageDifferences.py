@@ -44,20 +44,27 @@ horizon = 12
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1748944410.npy")
 
 #Forecasting strategies  
+#Recursive
+forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753960290.npy")
+
 #Direct
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753344963.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_.npy")
 
 #MIMO
-forecasts = np.load("Models/DiferencesForecast12DroughtDataset_model_testing_1753444629.npy")
-#forecasts = np.load("Models/DiferencesForecast12DroughtDataset_model_testing_.npy")
+#forecasts = np.load("Models/DiferencesForecast12DroughtDataset_model_testing_1753444629.npy")
+#forecasts = np.load("Models/DiferencesForecast12DroughtDataset_model_testing_1753806888.npy")
 
 #DirRec
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753358970.npy")
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753370981.npy")
 
-#original = np.load("Models/DiferencesOriginal6.npy")
-original = np.load("Models/DiferencesOriginal12.npy")
+#DIRMO
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753713755.npy")
+#forecasts = np.load("Models/DiferencesForecast12DroughtDataset_model_testing_1753879301.npy")
+
+original = np.load("Models/DiferencesOriginal6.npy")
+#original = np.load("Models/DiferencesOriginal12.npy")
 #naive = np.load("Models/DiferencesNaive6.npy")
 
 #naive = naive.reshape(naive.shape[:-1])
@@ -90,9 +97,11 @@ for i in range(len(original)):
     #cv2.imwrite("GeneratedImageComparation/DifferenceNoReductionArticulo_Sahir_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceFragmentation6Articulo_Sahir_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceCodification2Articulo_Sahir_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceRecursiveArticulo_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceDirectArticulo_t+{}.png".format(i), result)
-    cv2.imwrite("GeneratedImageComparation/DifferenceMIMOArticulo_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceMIMOArticulo_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceDirRecArticulo_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceDIRMOArticulo_t+{}.png".format(i), result)
 
 """for i in range(len(original)):
     diff = 255 - cv2.absdiff(naive[i], original[i])

@@ -7,6 +7,7 @@ import tensorflow as tf
 import gc
 import json
 import time
+import math
 from mapPreprocessing import Preprocessing
 
 class CustomCallback(Callback):
@@ -135,9 +136,18 @@ def model0(inp, channels):
     #m = keras.layers.Conv2D(channels, (3,3), activation= "s9.igmoid", padding= "same")(m)
     return m
 
+def model_multi_step(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
 def recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value):
     inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-    m = model2(inp, channels)
+    m = model_multi_step(inp, channels)
     model = keras.models.Model(inp, m)
     model.compile(loss = 'mae', optimizer= optimizer)
     #model.compile(loss = 'binary_crossentropy', optimizer= optimizer)
@@ -173,16 +183,25 @@ def recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_t
     np.save(forecast_name+'.npy', forecast)
     print("Pronósticos almacenados en: {}".format(forecast_name))
 
-def direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value):
+def direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value, continue_at= 0):
     total_preds = []
     forecast_name = "Models/{}".format(name)
-    for h in range(horizon):
+    board = TensorBoard(log_dir='logs/{}'.format(name))
+    epochs = config_json['epochs']
+    batch_size = config_json['batch_size']
+    if continue_at != 0:
+        for i in range(continue_at+1):
+            model = keras.saving.load_model(forecast_name+'_horizon_{}.keras'.format(i))
+            forecast = model.predict(x_test, batch_size= batch_size)
+            total_preds.append(forecast)
+
+    for h in range(continue_at, horizon):
         print("** EVALUANDO MODELO PARA EL HORIZONTE {} **".format(h+1))
         y_train_actual = y_train[:,h]
         y_validation_actual = y_validation[:,h]
         y_test_actual = y_test[:,h]
         inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-        m = model2(inp, channels)
+        m = model_multi_step(inp, channels)
         model = keras.models.Model(inp, m)
         model.compile(loss = 'mae', optimizer= optimizer)
         model.summary()
@@ -190,9 +209,7 @@ def direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test
         #Callbacks
         early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
-        board = TensorBoard(log_dir='logs/{}'.format(name))
-        epochs = config_json['epochs']
-        batch_size = config_json['batch_size']
+        
         model.fit(
             x_train, y_train_actual,
             batch_size= batch_size,
@@ -246,6 +263,60 @@ def model_2_MIMO(inp, Total_output):
     m = keras.layers.Conv3D(1, (3,3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
+def testing_MIMO(inp, Total_output):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", return_sequences= False, activation= "relu")(m)
+    def repeat_output(tensor):
+        tensor = tf.expand_dims(tensor, axis= 1)
+        return tf.repeat(tensor, repeats= Total_output, axis= 1)
+    m = keras.layers.Lambda(repeat_output)(m)
+    m = keras.layers.Conv3D(1, (3,3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def testing_MIMO2(inp, Total_output):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (3,3), padding= "same", return_sequences= False, activation= "relu")(m)
+    def repeat_output(tensor):
+        tensor = tf.expand_dims(tensor, axis= 1)
+        return tf.repeat(tensor, repeats= Total_output, axis= 1)
+    m = keras.layers.Lambda(repeat_output)(m)
+    m = keras.layers.Conv3D(1, (3,3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def testing_MIMO3(inp, Total_output):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (3,3), padding= "same", return_sequences= False, activation= "relu")(m)
+    def repeat_output(tensor):
+        tensor = tf.expand_dims(tensor, axis= 1)
+        return tf.repeat(tensor, repeats= Total_output, axis= 1)
+    m = keras.layers.Lambda(repeat_output)(m)
+    m = keras.layers.Conv3D(16, (3,3,3), activation= "sigmoid", padding= "same")(m)
+    m = keras.layers.Conv3D(1, (3,3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+def testing_MIMO4(inp, Total_output):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", return_sequences= False, activation= "relu")(m)
+    def repeat_output(tensor):
+        tensor = tf.expand_dims(tensor, axis= 1)
+        return tf.repeat(tensor, repeats= Total_output, axis= 1)
+    m = keras.layers.Lambda(repeat_output)(m)
+    m = keras.layers.Conv3D(16, (3,3,3), activation= "sigmoid", padding= "same")(m)
+    m = keras.layers.Conv3D(1, (3,3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
 def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value):
     inp = keras.layers.Input(shape= (x_train.shape[1:]))
     print(inp)
@@ -253,7 +324,7 @@ def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, 
     #inp_seq_length = keras.layers.Input(x_train.shape[1:])
     #print(inp_seq_length)
     #inp = keras.layers.Input(shape= (None, x_train.shape[4], x_train.shape[2], x_train.shape[3]))
-    m = model_2_MIMO(inp, horizon)
+    m = testing_MIMO3(inp, horizon)
     model = keras.models.Model(inp, m)
     model.compile(loss = 'mae', optimizer= optimizer)
     #model.compile(loss = 'binary_crossentropy', optimizer= optimizer)
@@ -263,6 +334,7 @@ def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, 
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
     board = TensorBoard(log_dir='logs/{}'.format(name))
     epochs = config_json['epochs']
+    #epochs = 10
     batch_size = config_json['batch_size']
     print(model.output_shape)
     model.fit(
@@ -272,6 +344,7 @@ def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, 
         validation_data= (x_validation, y_validation),
         callbacks = [reduce_lr, early_stopping]
     )
+    #K.clear_session()
 
     err = model.evaluate(x_test, y_test, batch_size= batch_size)
     print("El error del modelo es: {}".format(err))
@@ -281,20 +354,36 @@ def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, 
     np.save(forecast_name+'.npy', forecast)
     print("Pronósticos almacenados en: {}".format(forecast_name))
 
-def DirRec_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value):
+def DirRec_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value, continue_at= 0):
     total_preds = []
     forecast_name = "Models/{}".format(name)
     #Taking all data and store in aux variables for when the recursive part sustitute the last part of the set.
     x_train_actual = x_train[:]
     x_validation_actual = x_validation[:]
     x_test_actual = x_test[:]
-    for h in range(horizon):
+    board = TensorBoard(log_dir='logs/{}'.format(name))
+    epochs = config_json['epochs']
+    batch_size = config_json['batch_size']
+    if continue_at != 0:
+        for i in range(continue_at):
+            model = keras.saving.load_model(forecast_name+'_horizon_{}.keras'.format(i))
+            #Adding the prediction in the last part
+            preds = model.predict(x_train_actual, batch_size= batch_size)
+            x_train_actual = add_last(x_train_actual, preds[:])
+            preds = model.predict(x_validation_actual, batch_size= batch_size)
+            x_validation_actual = add_last(x_validation_actual, preds[:])
+            #The test predictions will be saved, the others are only for DirRec strategy flow
+            predictions = model.predict(x_test_actual, batch_size= batch_size)
+            x_test_actual = add_last(x_test_actual, predictions[:])
+            total_preds.append(predictions)
+
+    for h in range(continue_at, horizon):
         print("** EVALUANDO MODELO PARA EL HORIZONTE {} **".format(h+1))
         y_train_actual = y_train[:,h]
         y_validation_actual = y_validation[:,h]
         y_test_actual = y_test[:,h]
         inp = keras.layers.Input(shape= (None, *x_train_actual.shape[2:]))
-        m = model2(inp, channels)
+        m = model_multi_step(inp, channels)
         model = keras.models.Model(inp, m)
         model.compile(loss = 'mae', optimizer= optimizer)
         model.summary()
@@ -302,9 +391,7 @@ def DirRec_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test
         #Callbacks
         early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
-        board = TensorBoard(log_dir='logs/{}'.format(name))
-        epochs = config_json['epochs']
-        batch_size = config_json['batch_size']
+        
         model.fit(
             x_train_actual, y_train_actual,
             batch_size= batch_size,
@@ -353,7 +440,62 @@ def DirRec_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test
     print("Pronósticos almacenados en: {}".format(forecast_name))
 
 def DIRMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value, prediction_batch=4):
-    pass
+    total_preds = None
+    forecast_name = "Models/{}".format(name)
+    inp = keras.layers.Input(shape= (x_train.shape[1:]))
+    print(inp)
+    #Number of times for the loop to process
+    if prediction_batch > horizon:
+        steps = 1
+    else:
+        steps = math.ceil(horizon / prediction_batch)
+    for step in range(steps):
+        print("** EVALUANDO MODELO PARA EL PASO {} **".format(step+1))
+        print("PASO:{}, {}".format(step*prediction_batch, (step*prediction_batch)+prediction_batch))
+        if step*prediction_batch > horizon:
+            y_train_actual = y_train[:, step*prediction_batch : horizon]
+            y_validation_actual = y_validation[:, step*prediction_batch : horizon]
+            y_test_actual = y_test[:, step*prediction_batch : horizon]
+        else:
+            y_train_actual = y_train[:, step*prediction_batch : (step*prediction_batch)+prediction_batch]
+            y_validation_actual = y_validation[:, step*prediction_batch : (step*prediction_batch)+prediction_batch]
+            y_test_actual = y_test[:, step*prediction_batch : (step*prediction_batch)+prediction_batch]
+        
+        m = testing_MIMO4(inp, prediction_batch)
+        model = keras.models.Model(inp, m)
+        model.compile(loss = 'mae', optimizer= optimizer)
+        model.summary()
+        #Callbacks
+        early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
+        reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
+        board = TensorBoard(log_dir='logs/{}'.format(name))
+        epochs = config_json['epochs']
+        batch_size = config_json['batch_size']
+        print(model.output_shape)
+        model.fit(
+            x_train, y_train_actual,
+            batch_size= batch_size,
+            epochs = epochs,
+            validation_data= (x_validation, y_validation_actual),
+            callbacks = [reduce_lr, early_stopping]
+        )
+
+        err = model.evaluate(x_test, y_test_actual, batch_size= batch_size)
+        print("El error del modelo es: {}".format(err))
+        #forecast = map_forecast_recursive(model, x_test, horizon)
+        forecast = model.predict(x_test, batch_size= batch_size)
+        if total_preds is None:
+            total_preds = forecast
+        else:
+            total_preds = np.concatenate((total_preds, forecast), axis=1)
+        new_name = forecast_name+'_horizon_{}_{}'.format(step*prediction_batch, (step*prediction_batch)+prediction_batch)
+        model.save(new_name+'.keras')
+        print("Modelo directo almacenado en: {}".format(new_name))
+
+    print(total_preds.shape)
+    np.save(forecast_name+'.npy', total_preds)
+    print("Pronósticos almacenados en: {}".format(forecast_name))
+
 
 def main(config_file, load_and_forecast=False, model_name='', display= False):
     config_json = read_json_file(config_file)
@@ -363,6 +505,9 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     channels = config_json['channels']
     horizon = config_json['horizon']
     name = config_json['name'] + '_model_testing_{}'.format(int(time.time()))
+    #name = config_json['name'] + '_model_testing_{}'.format(1754031464)
+    #name = config_json['name'] + '_model_testing_{}'.format(1754321192)
+    
     optimizer = config_json['optimizer']
     data_name = '{}/{}.npy'.format(config_json['folder_models_save'], config_json['folder'])
     early_stopping_value = config_json['deep_training_early_stopping_patience']
@@ -372,7 +517,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     #For recursive strategy
     #x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
 
-    #For direct, MIMO, DirRec
+    #For direct, MIMO, DirRec, DIRMO
     x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_multi_output(window, horizon)
 
     
@@ -395,12 +540,17 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
         #recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
 
         #Direct strategy
-        #direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
+        #direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value, continue_at=11)
 
         #MIMO strategy
         MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
 
         #DirRec strategy
-        #DirRec_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
+        #DirRec_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value, continue_at= 3)
+
+        #DIRMO strategy
+        #DIRMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
+
+
 if __name__ == '__main__':
     main('Conv-LSTM_1.json', display=True)
