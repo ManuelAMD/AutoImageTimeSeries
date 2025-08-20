@@ -465,5 +465,7 @@ if __name__ == '__main__':
     p.load_data(120,360, names_file_path)
     p.map_masking(save_imgs= False, no_zone= True, display= True)
     categories = np.array([0, 35, 70, 119, 177, 220, 255])
+    #categories = np.array([18, 54, 90, 126, 162, 198, 234])
     p.categorize(categories, True)
-    p.save_data_numpy_array('Models/ProcessedDroughtDataset.npy')
+
+    p.save_data_numpy_array('Models/ProcessedDroughtDataset_2.npy')

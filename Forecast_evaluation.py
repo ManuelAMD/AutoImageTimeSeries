@@ -82,8 +82,10 @@ def multi_process_recolor(data, pallete):
     return np.array(results)
 
 def multi_process_evaluation(test, prediction, naive, cm_f, cm_n, l_clas, classes):
-    #cm_f = np.zeros((l_clas, l_clas), dtype=np.uint64)
-    #cm_n = np.zeros((l_clas, l_clas), dtype=np.uint64)
+    #cm_f_aux = np.zeros((l_clas, l_clas), dtype=np.uint64)
+    #cm_n_aux = np.zeros((l_clas, l_clas), dtype=np.uint64)
+    cm_f_indv = []
+    cm_n_indv = []
     print(cm_f)
     res_lists = zip(test, prediction, naive)
     args = [(t, p, n, l_clas, classes) for (t, p, n) in res_lists]
@@ -107,7 +109,11 @@ def multi_process_evaluation(test, prediction, naive, cm_f, cm_n, l_clas, classe
     for result in results:
         cm_f = np.add(cm_f, result[0])
         cm_n = np.add(cm_n, result[1])
-    return cm_f, cm_n
+        cm_f_indv.append(result[0])
+        cm_n_indv.append(result[1])
+    cm_f_indv = np.array(cm_f_indv)
+    cm_n_indv = np.array(cm_n_indv)
+    return cm_f, cm_n, cm_f_indv, cm_n_indv
 
 def mae_image(y_true, y_pred):
     err = np.sum((y_true.astype('float') - y_pred.astype('float')) ** 2)
@@ -378,9 +384,17 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
 
     for i in range(horizon):
         print(i)
-        actual_y = y_test[:, :(i+1)]
-        actual_f = data[:, :(i+1)]
-        actual_n = naive[:, :(i+1)]
+        actual_y = y_test[:, i]
+        actual_f = data[:, i]
+        actual_n = naive[:, i]
+        
+        print(actual_y.shape)
+        print(actual_f.shape)
+        print(actual_n.shape)
+
+        actual_y = actual_y.reshape(actual_y.shape[0], 1, actual_y.shape[1], actual_y.shape[2], 1)
+        actual_f = actual_f.reshape(actual_f.shape[0], 1, actual_f.shape[1], actual_f.shape[2], 1)
+        actual_n = actual_n.reshape(actual_n.shape[0], 1, actual_n.shape[1], actual_n.shape[2], 1)
 
         print("Resultados de los errores de pronóstico")
         MAE, MSE, RMSE = calculate_errors(actual_y.reshape(actual_y.shape[:-1])/255, actual_f.reshape(actual_f.shape[:-1])/255)
@@ -394,10 +408,9 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
         print("MAE", MAE)
         print("MSE", MSE)
         print("RMSE", RMSE)
-
         res_err_naive = [MAE, MSE, RMSE]
 
-        cm_f, cm_n = multi_process_evaluation(actual_y[:,-1], actual_f[:,-1], actual_n[:,-1], cm_f, cm_n, l_class, classes)
+        cm_f, cm_n, _, _ = multi_process_evaluation(actual_y[:,-1], actual_f[:,-1], actual_n[:,-1], cm_f, cm_n, l_class, classes)
         print("Matriz de confusión de pronóstico")
         print(cm_f)
 
@@ -423,7 +436,76 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
 
 
         df_combinado = pd.concat([df_err_pronostico, df_err_naive, df_cm_f, df_cm_res_f, df_cm_conclusion_f, df_cm_n, df_cm_res_n, df_cm_conclusion_n], axis= 1)
+        df_combinado.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_individual_h_'+str(i+1)+'.xlsx', index= False)
+
+    return
+    for i in range(horizon):
+        print(i)
+        actual_y = y_test[:, :(i+1)]
+        actual_f = data[:, :(i+1)]
+        actual_n = naive[:, :(i+1)]
+        print(actual_y.shape)
+        print(actual_f.shape)
+        print(actual_n.shape)
+
+
+        print("Resultados de los errores de pronóstico")
+        MAE, MSE, RMSE = calculate_errors(actual_y.reshape(actual_y.shape[:-1])/255, actual_f.reshape(actual_f.shape[:-1])/255)
+        print("MAE", MAE)
+        print("MSE", MSE)
+        print("RMSE", RMSE)
+        res_err_pred = [MAE, MSE, RMSE]
+
+        print("Resultados de los errores de Naive")
+        MAE, MSE, RMSE = calculate_errors(actual_y.reshape(actual_y.shape[:-1])/255, actual_n.reshape(actual_n.shape[:-1])/255)
+        print("MAE", MAE)
+        print("MSE", MSE)
+        print("RMSE", RMSE)
+        res_err_naive = [MAE, MSE, RMSE]
+
+        cm_f, cm_n, cm_f_indv, cm_n_indv = multi_process_evaluation(actual_y[:,-1], actual_f[:,-1], actual_n[:,-1], cm_f, cm_n, l_class, classes)
+        print("Matriz de confusión de pronóstico")
+        print(cm_f)
+
+        cm_res_f, cm_conclusion_f = confusion_matrix_evaluation(cm_f)
+        #cm_res_f_indv, cm_conclusion_f_indv = confusion_matrix_evaluation(cm_f_indv)
+
+        print("NAIVEEE!!!!!!!!!!!!!!")
+
+        print("Matriz de confusión de naive")
+        print(cm_n)
+
+        cm_res_n, cm_conclusion_n = confusion_matrix_evaluation(cm_n)
+        #cm_res_n_indv, cm_conclusion_n_indv = confusion_matrix_evaluation(cm_n_indv)
+
+        #Guardar datos
+        df_err_pronostico = pd.DataFrame(res_err_pred, columns=['Forecast errs'])
+        df_err_naive = pd.DataFrame(res_err_naive, columns=['Naive errs'])
+
+        df_cm_f = pd.DataFrame(cm_f, columns=[f'cat_{i}' for i in range(cm_f.shape[1])])
+        df_cm_res_f = pd.DataFrame(cm_res_f, columns=[f'cat_res_{i}' for i in range(cm_res_f.shape[1])])
+        df_cm_conclusion_f = pd.DataFrame(cm_conclusion_f, columns=[f'cat__con_{i}' for i in range(cm_res_f.shape[1])])
+        df_cm_n = pd.DataFrame(cm_n, columns=[f'cat_{i}' for i in range(cm_n.shape[1])])
+        df_cm_res_n = pd.DataFrame(cm_res_n, columns=[f'cat_res_{i}' for i in range(cm_res_n.shape[1])])
+        df_cm_conclusion_n = pd.DataFrame(cm_conclusion_n, columns=[f'cat_con_{i}' for i in range(cm_res_f.shape[1])])
+
+
+        df_combinado = pd.concat([df_err_pronostico, df_err_naive, df_cm_f, df_cm_res_f, df_cm_conclusion_f, df_cm_n, df_cm_res_n, df_cm_conclusion_n], axis= 1)
         df_combinado.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_h_'+str(i+1)+'.xlsx', index= False)
+
+        #Guardar datos individuales
+        #df_cm_f_indv = pd.DataFrame(cm_f_indv, columns=[f'cat_{i}' for i in range(cm_f_indv.shape[1])])
+        #df_cm_res_f_indv = pd.DataFrame(cm_res_f_indv, columns=[f'cat_res_{i}' for i in range(cm_res_f_indv.shape[1])])
+        #df_cm_conclusion_f_indv = pd.DataFrame(cm_conclusion_f_indv, columns=[f'cat__con_{i}' for i in range(cm_res_f_indv.shape[1])])
+        #df_cm_n_indv = pd.DataFrame(cm_n_indv, columns=[f'cat_{i}' for i in range(cm_n_indv.shape[1])])
+        #df_cm_res_n_indv = pd.DataFrame(cm_res_n_indv, columns=[f'cat_res_{i}' for i in range(cm_res_n_indv.shape[1])])
+        #df_cm_conclusion_n_indv = pd.DataFrame(cm_conclusion_n_indv, columns=[f'cat_con_{i}' for i in range(cm_res_f_indv.shape[1])])
+
+
+        #df_indv = pd.concat([df_cm_f_indv, df_cm_res_f_indv, df_cm_conclusion_f_indv, df_cm_n_indv, df_cm_res_n_indv, df_cm_conclusion_n_indv], axis= 1)
+        #df_indv.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_individual_h_'+str(i+1)+'.xlsx', index= False)
+
+
 
 def main_frag(forecast_path, config_file, h: int, display= False, frag_number= 2):
     fp = forecast_path[:-4]
@@ -471,48 +553,79 @@ def main_autoencoder(forecast_path, config_file, h: int, display= False, cod_par
 
 if __name__ == "__main__":
     #Multi-step forecasting strategy exp
-    #Recursive
+    #Recursive w=12
     #main('DroughtDataset_model_testing_1753960290.npy', 'Conv-LSTM_1.json', 12, True)
+    #w=6
+    #main('DroughtDataset_model_testing_1755521587.npy', 'Conv-LSTM_1.json', 12, True)
+    #Model multiple 2 w=6
+    #main('DroughtDataset_model_testing_1755621354.npy', 'Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True)
+    #Change classes testing
+    #main('DroughtDataset_model_testing_1755617631.npy', 'Conv-LSTM_1.json', 12, True)
+    #main('DroughtDataset_model_testing_1755620091.npy', 'Conv-LSTM_1.json', 12, True)
+    
     #Direct
     #main('DroughtDataset_model_testing_1750083438.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_1750162155.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_1753344963.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #12 wsize
-    #main('DroughtDataset_model_testing_1753960290.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #Modelo 3 
-    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    main('DroughtDataset_model_testing_1753960290.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Modelo Multiple w=12
+    main('DroughtDataset_model_testing_1755095296.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #W=6
+    #main('DroughtDataset_model_testing_1755175568.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #MIMO
-    #Model 2
-    #main('DroughtDataset_model_testing_1753444629.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model 2 W=12
+    main('DroughtDataset_model_testing_1753444629.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model 1
     #main('DroughtDataset_model_testing_1753718880.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #Model_TESTING2
-    #main('DroughtDataset_model_testing_1753806888.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model_TESTING2 W=12
+    main('DroughtDataset_model_testing_1753806888.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model_Testing 3
-    main('DroughtDataset_model_testing_1754559763.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1754559763.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model Testing 5 W=12
+    main('DroughtDataset_model_testing_1754912235.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #   W=6
+    #main('DroughtDataset_model_testing_1754918674.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #DirRec
     #main('DroughtDataset_model_testing_1751026745.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1755523330.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    
     #Con validation sustituido
     #main('DroughtDataset_model_testing_1753358970.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #W=12
-    #main('DroughtDataset_model_testing_1754031464.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    main('DroughtDataset_model_testing_1754031464.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #W=18
     #main('DroughtDataset_model_testing_1754321192.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Con el validation normal
     #main('DroughtDataset_model_testing_1753370981.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model multi-2 w=6
+    #main('DroughtDataset_model_testing_1755604147.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     
-    #DIRMO  
+    #DIRMO  Prediction bath 4
     #main('DroughtDataset_model_testing_1753713755.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #Model Testing 2
-    #main('DroughtDataset_model_testing_1753879301.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #Model testing 3
-    #main('DroughtDataset_model_testing_1754474893.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model Testing 2 w=12
+    main('DroughtDataset_model_testing_1753879301.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model testing 3 w=12
+    main('DroughtDataset_model_testing_1754474893.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model testing 5 w=12
+    main('DroughtDataset_model_testing_1755087492.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    
+    #Prediction bath 3
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
 
