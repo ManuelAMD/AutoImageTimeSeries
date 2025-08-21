@@ -659,10 +659,10 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     preprocess = Preprocessing()
     preprocess.load_from_numpy_array(data_name, rows, cols, channels)
     #For recursive strategy
-    #x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
+    x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
 
     #For direct, MIMO, DirRec, DIRMO
-    x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_multi_output(window, horizon)
+    #x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_multi_output(window, horizon)
 
     
     strategy = tf.distribute.MirroredStrategy()

@@ -379,10 +379,9 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
             im.save("GeneratedImageComparation/Naive_t+{}.png".format(i))
         plt.show()
 
-    cm_f = np.zeros((l_class, l_class), dtype=np.uint64)
-    cm_n = np.zeros((l_class, l_class), dtype=np.uint64)
-
     for i in range(horizon):
+        cm_f = np.zeros((l_class, l_class), dtype=np.uint64)
+        cm_n = np.zeros((l_class, l_class), dtype=np.uint64)
         print(i)
         actual_y = y_test[:, i]
         actual_f = data[:, i]
@@ -438,8 +437,10 @@ def main(forecast_path, config_file, h: int, display= False, mode=1):
         df_combinado = pd.concat([df_err_pronostico, df_err_naive, df_cm_f, df_cm_res_f, df_cm_conclusion_f, df_cm_n, df_cm_res_n, df_cm_conclusion_n], axis= 1)
         df_combinado.to_excel('Res_ConvLSTM/'+forecast_path[:-4]+'_individual_h_'+str(i+1)+'.xlsx', index= False)
 
-    return
+    
     for i in range(horizon):
+        cm_f = np.zeros((l_class, l_class), dtype=np.uint64)
+        cm_n = np.zeros((l_class, l_class), dtype=np.uint64)
         print(i)
         actual_y = y_test[:, :(i+1)]
         actual_f = data[:, :(i+1)]
@@ -556,9 +557,9 @@ if __name__ == "__main__":
     #Recursive w=12
     #main('DroughtDataset_model_testing_1753960290.npy', 'Conv-LSTM_1.json', 12, True)
     #w=6
-    #main('DroughtDataset_model_testing_1755521587.npy', 'Conv-LSTM_1.json', 12, True)
+    main('DroughtDataset_model_testing_1755521587.npy', 'Conv-LSTM_1.json', 12, True)
     #Model multiple 2 w=6
-    #main('DroughtDataset_model_testing_1755621354.npy', 'Conv-LSTM_1.json', 12, True)
+    main('DroughtDataset_model_testing_1755621354.npy', 'Conv-LSTM_1.json', 12, True)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True)
@@ -572,9 +573,9 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_1750162155.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_1753344963.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #12 wsize
-    main('DroughtDataset_model_testing_1753960290.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1753960290.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Modelo Multiple w=12
-    main('DroughtDataset_model_testing_1755095296.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1755095296.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #W=6
     #main('DroughtDataset_model_testing_1755175568.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
@@ -582,15 +583,15 @@ if __name__ == "__main__":
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #MIMO
     #Model 2 W=12
-    main('DroughtDataset_model_testing_1753444629.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1753444629.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model 1
     #main('DroughtDataset_model_testing_1753718880.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model_TESTING2 W=12
-    main('DroughtDataset_model_testing_1753806888.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
-    #Model_Testing 3
+    #main('DroughtDataset_model_testing_1753806888.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #Model_Testing 3 W = ?
     #main('DroughtDataset_model_testing_1754559763.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model Testing 5 W=12
-    main('DroughtDataset_model_testing_1754912235.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1754912235.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #   W=6
     #main('DroughtDataset_model_testing_1754918674.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
@@ -606,7 +607,7 @@ if __name__ == "__main__":
     #Con validation sustituido
     #main('DroughtDataset_model_testing_1753358970.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #W=12
-    main('DroughtDataset_model_testing_1754031464.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1754031464.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #W=18
     #main('DroughtDataset_model_testing_1754321192.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Con el validation normal
@@ -617,11 +618,11 @@ if __name__ == "__main__":
     #DIRMO  Prediction bath 4
     #main('DroughtDataset_model_testing_1753713755.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model Testing 2 w=12
-    main('DroughtDataset_model_testing_1753879301.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1753879301.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model testing 3 w=12
-    main('DroughtDataset_model_testing_1754474893.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1754474893.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     #Model testing 5 w=12
-    main('DroughtDataset_model_testing_1755087492.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
+    #main('DroughtDataset_model_testing_1755087492.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
     
     #Prediction bath 3
     #main('DroughtDataset_model_testing_.npy', 'Conv-LSTM_1.json', 12, True, mode= 2)
