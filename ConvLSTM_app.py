@@ -205,9 +205,62 @@ def model_multi_step(inp, channels):
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
+def model_tesis_1(inp, channels):
+    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "sigmoid")(inp)
+    return m
+
+def model_tesis_2(inp, channels):
+    m = keras.layers.ConvLSTM2D(channels, (5,5), padding= "same", activation= "sigmoid")(inp)
+    return m
+
+def model_tesis_3(inp, channels):
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(inp)
+    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
+    return m
+
+def model_tesis_4(inp, channels):
+    m = keras.layers.ConvLSTM2D(32, (3,3), padding= "same", activation= "relu")(inp)
+    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
+    return m
+
+def model_tesis_5(inp, channels):
+    m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", activation= "relu")(inp)
+    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
+    return m
+
+def model_tesis_6(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(32, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "relu")(m)
+    return m
+
+def model_tesis_7(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "relu")(m)
+    return m
+
+def model_tesis_8(inp, channels):
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(64, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m
+
+
 def recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value):
     inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-    m = model_multi_step_2(inp, channels)
+    m = model_tesis_4(inp, channels)
     model = keras.models.Model(inp, m)
     model.compile(loss = 'mae', optimizer= optimizer)
     #model.compile(loss = 'binary_crossentropy', optimizer= optimizer)
@@ -259,7 +312,9 @@ def model_multi_step_2(inp, channels):
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(8, (3,3), padding= "same", activation= "relu")(m)
     m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
@@ -269,7 +324,11 @@ def model_multi_step_3(inp, channels):
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(8, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(4, (3,3), padding= "same", activation= "relu")(m)
     m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
     m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
@@ -280,7 +339,13 @@ def model_multi_step_4(inp, channels):
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(16, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(8, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(4, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.ConvLSTM2D(2, (3,3), padding= "same", activation= "relu")(m)
     m = keras.layers.Conv2D(64, (3,3), activation= "relu", padding= "same")(m)
     m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
     m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
@@ -681,7 +746,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
             return
         
         #Recursive strategy
-        #recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
+        recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
 
         #Direct strategy
         #direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value)
@@ -697,4 +762,4 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
 
 
 if __name__ == '__main__':
-    main('Conv-LSTM_1.json', display=True)
+    main('Conv-LSTM_spi.json', display=True)

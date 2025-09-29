@@ -35,7 +35,7 @@ class Preprocessing:
         data = []
         if color == 'grayscale':
             channels = 1
-            data = li.load_imgs(self.org_path, names_file_path, rows, cols)
+            data = li.load_imgs(self.org_path, names_file_path, rows, cols, img_type='')
             
         else:
             channels = 3
@@ -455,17 +455,30 @@ class Preprocessing:
         return x_train_frags, y_train_frags, x_validation_frags, y_validation_frags, x_test_frags, y_test_frags
 
 if __name__ == '__main__':
-    names_file_path = 'NamesDroughtDataset.csv'
+    #names_file_path = 'NamesDroughtDataset.csv'
     #Recortar la zona de interes
     #p = Preprocessing('app/datasets/DroughtDataset', 'app/datasets/DroughtDatasetMainland')
     #p.load_data(480,640, names_file_path)
     #p.crop_images(240, 318, 600, 438)
 
-    p = Preprocessing('app/datasets/DroughtDatasetMainland', 'app/datasets/DroughtDatasetMask')
-    p.load_data(120,360, names_file_path)
-    p.map_masking(save_imgs= False, no_zone= True, display= True)
-    categories = np.array([0, 35, 70, 119, 177, 220, 255])
+    #p = Preprocessing('app/datasets/DroughtDatasetMainland', 'app/datasets/DroughtDatasetMask')
+    #p.load_data(120,360, names_file_path)
+    #p.map_masking(save_imgs= False, no_zone= True, display= True)
+    #categories = np.array([0, 35, 70, 119, 177, 220, 255])
     #categories = np.array([18, 54, 90, 126, 162, 198, 234])
+    #p.categorize(categories, True)
+
+    #p.save_data_numpy_array('Models/ProcessedDroughtDataset_2.npy')
+
+    names_file_path = 'NamesSPIDataset.csv'
+    p = Preprocessing('app/datasets/SPIReescaleFull', 'app/datasets/SPIFullMask')
+    p.load_data(260, 640, names_file_path)
+    p.map_masking(save_imgs= True, no_zone= True, display= True)
+    categories = np.array([0, 23, 46, 69, 92, 115, 138, 161, 184, 207, 230, 255])
     p.categorize(categories, True)
 
-    p.save_data_numpy_array('Models/ProcessedDroughtDataset_2.npy')
+    p.save_data_numpy_array('Models/ProcessedSPIDataset.npy')
+
+
+
+

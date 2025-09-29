@@ -2,8 +2,8 @@
 from PIL import Image
 import os, sys
 
-path = "SPIIMAGES/"
-destiny = "SPIReescale/"
+path = "SPIImagesFull/"
+destiny = "SPIReescaleFull/"
 dirs = os.listdir( path )
 
 def crop_and_resize(cropSize, size):
@@ -13,7 +13,7 @@ def crop_and_resize(cropSize, size):
             f, e = os.path.splitext(destiny+item)
             imageCrop = im.crop(cropSize)
             imResize = imageCrop.resize(size)
-            imResize.save(f + 'resized.png', 'PNG', quality=90)
+            imResize.save(f + '.png', 'PNG', quality=90)
 #100, 270
 #3300 , 1620
 

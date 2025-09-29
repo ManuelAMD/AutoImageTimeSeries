@@ -134,14 +134,14 @@ WEIGHT_DECAY = 1e-5
 EPOCHS = 150
 
 #TUBELET EMBEDDING
-PATCH_SIZE = (2, 16, 16)
+PATCH_SIZE = (4, 4, 12)
 NUM_PATCHES = (INPUT_SHAPE[0] // PATCH_SIZE[0]) ** 2
 
 #ViViT ARCHITECTURE
 LAYER_NORM_EPS = 1e-6
-PROJECTION_DIM = 128
-NUM_HEADS = 4
-NUM_LAYERS = 2
+PROJECTION_DIM = 64
+NUM_HEADS = 16
+NUM_LAYERS = 4
 
 data = np.load("Models/ProcessedDroughtDataset.npy")
 print(data.shape)
@@ -252,26 +252,56 @@ def video_transformer(
     #patches = layers.Conv2D(1, kernel_size = (2,1))(patches)
 
   representation = layers.LayerNormalization(epsilon= layer_norm_eps)(encoded_patches)
+
+  
+
   #representation = layers.Reshape((616, 128, 1))(representation)
-  representation = layers.Reshape((462, 128, 1))(representation)
+  #----
+  #representation = layers.Reshape((462, 128, 1))(representation)
+  representation = layers.Reshape((900, 64, 1))(representation)
   #representation = layers.Conv2D(16, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
   #representation = layers.Conv2D(8, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
-  representation = layers.Conv2D(1, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
+  #----
+  #representation = layers.Conv2D(1, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
+  representation = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(representation)
   #representation = layers.Reshape((338, 128))(representation)
   #representation = layers.GlobalAvgPool1D()(representation)
-  representation = layers.Flatten()(representation)
+  #----
+  #representation = layers.Flatten()(representation)
+  #representation = layers.Conv2D(64, (3,3), activation= "relu", padding= "same")(representation)
+  #cnn = keras.layers.MaxPooling2D((2,2), padding="same")(cnn)
+  representation = layers.Conv2D(32, (5,5), activation= "relu", padding= "same")(representation)
+  #cnn = keras.layers.MaxPooling2D((2,2), padding="same")(cnn)
+  representation = layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(representation)
+
+  representation = layers.Conv2D(8, (3, 3), strides=(4, 1), padding='same', activation='relu')(representation)
+
+  representation = layers.Conv2DTranspose(1, (3,3), strides= (1,3), padding='same', activation='relu')(representation)
+  def resize_dims(tensor):
+    tensor = tf.image.resize(tensor, (120,360))
+    return tensor
+  #representation = (lambda x: tf.image.resize(x, (120, 360)))(representation)
+  representation = keras.layers.Lambda(resize_dims)(representation)
+
 
   #x = layers.Dense(10800, activation= 'relu')(representation)
-  x = layers.Dense(2700, activation= 'relu')(representation)
-  x = keras.layers.BatchNormalization()(x)
+  #----
+  #x = layers.Dense(2700, activation= 'relu')(representation)
+  #----
+  #x = keras.layers.BatchNormalization()(x)
   #outputs = layers.Reshape((input_shape[1],input_shape[2],1))(x)
-  cnn = layers.Reshape((30,90,1))(x)
+  #----
+  #cnn = layers.Reshape((30,90,1))(x)
   #cnn = layers.Reshape((60,180,1))(x)
-  cnn = layers.Conv2DTranspose(128, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
-  cnn = layers.Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
+  #----
+  #cnn = layers.Conv2DTranspose(128, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
+  #----
+  #cnn = layers.Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
   #cnn = keras.layers.BatchNormalization()(cnn)
   #cnn = layers.Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
-  outputs = layers.Conv2DTranspose(1, (3, 3), padding='same', activation='sigmoid')(cnn)
+  #----
+  
+  outputs = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(representation)
 
 
   #embeddings = layers.TimeDistributed(patches)(inputs)
@@ -294,7 +324,7 @@ def run_experiment():
       loss= "mae",
   )
   model.summary()
-  early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
+  early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= 10, restore_best_weights= True)
   reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
   history = model.fit(x_train, y_train, epochs= EPOCHS, validation_data= (x_validation, y_validation),callbacks = [reduce_lr, early_stopping])
   return model

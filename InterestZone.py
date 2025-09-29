@@ -4,8 +4,8 @@ import cv2
 from PIL import Image
 import app.common.load_imgs as li
 
-def load_and_prepare_all_data(rows= 122, cols= 360, channels= 1):
-    x = li.load_imgs("app/datasets/DroughtDatasetSelect", "NamesDroughtDataset.csv", rows, cols, img_type="")
+def load_and_prepare_all_data(rows= 260, cols= 640, channels= 1):
+    x = li.load_imgs("app/datasets/SPIReescaleFull", "NamesSPIDataset.csv", rows, cols, img_type="")
     x = x.astype('float32')
     x = x.reshape(len(x), rows, cols, channels)
     print('Data shape: {}'.format(x.shape))
@@ -54,7 +54,7 @@ aux = new_x[0]
 #plt.imshow(img, cmap="gray")
 #plt.show()
 
-names = li.get_names("NamesDroughtDataset.csv")
+names = li.get_names("NamesSPIDataset.csv")
 index = 0
 
 new_array = np.array([])
