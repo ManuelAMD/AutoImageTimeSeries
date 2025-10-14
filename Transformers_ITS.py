@@ -133,15 +133,43 @@ WEIGHT_DECAY = 1e-5
 #TRAINING
 EPOCHS = 150
 
+def vivit_params_tesis_1():
+   return (4,8,8), 16, 4, 4
+
+def vivit_params_tesis_2():
+   return (4,10,10), 32, 4, 4
+
+def vivit_params_tesis_3():
+   return (4,12,12), 64, 8, 6
+
+def vivit_params_tesis_4():
+   return (4,16,16), 128, 8, 6
+
+def vivit_params_tesis_5():
+   return (2,14,14), 16, 8, 8
+
+def vivit_params_tesis_6():
+   return (2,14,14), 32, 8, 10
+
+def vivit_params_tesis_7():
+   return (2,16,16), 48, 10, 10
+
+def vivit_params_tesis_8():
+   return (2,16,16), 64, 12, 10
+
+PATCH_SIZE, PROJECTION_DIM, NUM_HEADS, NUM_LAYERS = vivit_params_tesis_8()
+
 #TUBELET EMBEDDING
-PATCH_SIZE = (4, 4, 12)
+#PATCH_SIZE = (4, 4, 12)
 NUM_PATCHES = (INPUT_SHAPE[0] // PATCH_SIZE[0]) ** 2
 
 #ViViT ARCHITECTURE
 LAYER_NORM_EPS = 1e-6
-PROJECTION_DIM = 64
-NUM_HEADS = 16
-NUM_LAYERS = 4
+#PROJECTION_DIM = 64
+#NUM_HEADS = 16
+#NUM_LAYERS = 4
+
+
 
 data = np.load("Models/ProcessedDroughtDataset.npy")
 print(data.shape)
@@ -156,55 +184,78 @@ for idx, ax in enumerate(axes.flat):
     ax.axis("off")
 
 plt.show()
-"""
-args = [(d, categories) for d in data]
-
-num_cores = multiprocessing.cpu_count()
-with ProcessPoolExecutor(max_workers=num_cores-4) as pool:
-    with tqdm(total = len(data)) as progress:
-        futures = []
-
-        for img in args:
-            future = pool.submit(recolor, img)
-            future.add_done_callback(lambda p: progress.update())
-            futures.append(future)
-        
-        results = []
-        for future in futures:
-            result = future.result()
-            results.append(result)
-x_greys = np.array(results)
-x = x_greys.astype('float32') / 255"""
-"""
-x_2 = agroup_window(data, window)
-print(x_2.shape)
-x_train = x_2[: int(len(x_2) * .7)]
-x_test = x_2[int(len(x_2) * .7) :]
-x_validation = x_train[int(len(x_train) * .8) :]
-x_train = x_train[: int(len(x_train) * .8)]
-
-x_train = x_train.reshape(len(x_train), window, rows, cols, channels)
-x_validation = x_validation.reshape(len(x_validation), window, rows, cols, channels)
-x_test = x_test.reshape(len(x_test), window, rows, cols, channels)
-
-print("Forma de datos de entrenamiento: {}".format(x_train.shape))
-print("Forma de datos de validación: {}".format(x_validation.shape))
-print("Forma de datos de pruebas: {}".format(x_test.shape))
-
-x_train, y_train = create_shifted_frames(x_train)
-x_validation, y_validation = create_shifted_frames(x_validation)
-x_test, y_test = create_shifted_frames(x_test)
-
-print("Training dataset shapes: {}, {}".format(x_train.shape, y_train.shape))
-print("Validation dataset shapes: {}, {}".format(x_validation.shape, y_validation.shape))
-print("Test dataset shapes: {}, {}".format(x_test.shape, y_test.shape))
-
-np.save("Models/x_test_transformer_greys_forecast.npy", x_test)
-np.save("Models/y_test_transformer_greys_forecast.npy", y_test)"""
 
 preprocess = Preprocessing()
 preprocess.load_from_numpy_array(data_name, rows, cols, channels)
 x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_dataset(window)
+
+def resize_dims(tensor):
+    tensor = tf.image.resize(tensor, (120,360))
+    return tensor
+
+def vivit_cnn_tesis_1(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(16, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
+
+def vivit_cnn_tesis_2(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
+
+def vivit_cnn_tesis_3(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(64, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
+
+def vivit_cnn_tesis_4(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(16, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
+
+def vivit_cnn_tesis_5(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(64, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
+
+def vivit_cnn_tesis_6(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(64, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(16, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
+
+def vivit_cnn_tesis_7(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(16, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(8, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
+
+def vivit_cnn_tesis_8(prev):
+    m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
+    m = keras.layers.Lambda(resize_dims)(m)
+    m = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(m)
+    m = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(m)
+    m = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(m)
+    m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
+    return m
 
 def video_transformer(
     tubelet_embedder,
@@ -258,30 +309,95 @@ def video_transformer(
   #representation = layers.Reshape((616, 128, 1))(representation)
   #----
   #representation = layers.Reshape((462, 128, 1))(representation)
-  representation = layers.Reshape((900, 64, 1))(representation)
+  #representation = layers.Reshape((900, 64, 1))(representation)
+
+  #ADAPTAR A LAS CONFIGURACIONES!
+  #Model_testing_1
+  #w=4, 5, 6, 7
+  #representation = layers.Reshape((675, 16, 1))(representation)
+  #w=8, 9, 10
+  #representation = layers.Reshape((1350, 16, 1))(representation)
+  #Model_testing_2
+  #w=4, 5, 6, 7
+  #representation = layers.Reshape((432, 32, 1))(representation)
+  #w=8, 9, 10
+  #representation = layers.Reshape((864, 32, 1))(representation)
+  #Model_testing_3
+  #w=4, 5, 6, 7
+  #representation = layers.Reshape((300, 64, 1))(representation)
+  #w=8, 9, 10
+  #representation = layers.Reshape((600, 64, 1))(representation)
+  #Model_testing_4
+  #w=4, 5, 6, 7
+  #representation = layers.Reshape((154, 128, 1))(representation)
+  #w=8, 9, 10
+  #representation = layers.Reshape((308, 128, 1))(representation)
+
+  #Model_testing_5
+  #w=4, 5
+  #representation = layers.Reshape((400, 16, 1))(representation)
+  #w=6, 7 
+  #representation = layers.Reshape((600, 16, 1))(representation)
+  #w=8, 9
+  #representation = layers.Reshape((800, 16, 1))(representation)
+  #w=10 -
+  #representation = layers.Reshape((1000, 16, 1))(representation)
+  #Model_testing_6
+  #w=4, 5
+  #representation = layers.Reshape((400, 32, 1))(representation)
+  #w=6, 7 
+  #representation = layers.Reshape((600, 32, 1))(representation)
+  #w=8, 9
+  #representation = layers.Reshape((800, 32, 1))(representation)
+  #w=10 -200
+  #representation = layers.Reshape((1000, 32, 1))(representation)
+  #Model_testing_7
+  #w=4, 5
+  #representation = layers.Reshape((308, 48, 1))(representation)
+  #w=6, 7 
+  #representation = layers.Reshape((462, 48, 1))(representation)
+  #w=8, 9
+  #representation = layers.Reshape((616, 48, 1))(representation)
+  #w=10 -177
+  #representation = layers.Reshape((770, 48, 1))(representation)
+  #Model_testing_8
+  #w=4, 5
+  #representation = layers.Reshape((308, 64, 1))(representation)
+  #w=6, 7 
+  #representation = layers.Reshape((462, 64, 1))(representation)
+  #w=8, 9
+  representation = layers.Reshape((616, 64, 1))(representation)
+  #w=10 -154
+  #representation = layers.Reshape((770, 64, 1))(representation)
+
   #representation = layers.Conv2D(16, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
   #representation = layers.Conv2D(8, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
   #----
   #representation = layers.Conv2D(1, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
-  representation = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(representation)
+
+
+  m = vivit_cnn_tesis_8(representation)
+
+  
+  #representation = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(representation)
   #representation = layers.Reshape((338, 128))(representation)
   #representation = layers.GlobalAvgPool1D()(representation)
   #----
   #representation = layers.Flatten()(representation)
   #representation = layers.Conv2D(64, (3,3), activation= "relu", padding= "same")(representation)
   #cnn = keras.layers.MaxPooling2D((2,2), padding="same")(cnn)
-  representation = layers.Conv2D(32, (5,5), activation= "relu", padding= "same")(representation)
+  #representation = layers.Conv2D(32, (5,5), activation= "relu", padding= "same")(representation)
   #cnn = keras.layers.MaxPooling2D((2,2), padding="same")(cnn)
-  representation = layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(representation)
+  #representation = layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(representation)
 
-  representation = layers.Conv2D(8, (3, 3), strides=(4, 1), padding='same', activation='relu')(representation)
+  #representation = layers.Conv2D(8, (3, 3), strides=(4, 1), padding='same', activation='relu')(representation)
 
-  representation = layers.Conv2DTranspose(1, (3,3), strides= (1,3), padding='same', activation='relu')(representation)
-  def resize_dims(tensor):
-    tensor = tf.image.resize(tensor, (120,360))
-    return tensor
+  #representation = layers.Conv2DTranspose(1, (3,3), strides= (1,3), padding='same', activation='relu')(representation)
+  #def resize_dims(tensor):
+  #  tensor = tf.image.resize(tensor, (120,360))
+  #  return tensor
   #representation = (lambda x: tf.image.resize(x, (120, 360)))(representation)
-  representation = keras.layers.Lambda(resize_dims)(representation)
+  #representation = keras.layers.Lambda(resize_dims)(representation)
 
 
   #x = layers.Dense(10800, activation= 'relu')(representation)
@@ -301,11 +417,11 @@ def video_transformer(
   #cnn = layers.Conv2DTranspose(64, (3, 3), strides=(2, 2), padding='same', activation='relu')(cnn)
   #----
   
-  outputs = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(representation)
+  #outputs = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(representation)
 
 
   #embeddings = layers.TimeDistributed(patches)(inputs)
-  model = keras.Model(inputs= inputs, outputs= outputs)
+  model = keras.models.Model(inputs, m)
   return model
 
 def run_experiment():
@@ -332,6 +448,7 @@ def run_experiment():
 strategy = tf.distribute.MirroredStrategy()
 #strategy = tf.distribute.OneDeviceStrategy(device='/GPU:0')
 with strategy.scope():
+    keras.mixed_precision.set_global_policy("mixed_float16")
     model = run_experiment()
 
     preds = model.predict(x_test)

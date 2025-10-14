@@ -44,11 +44,16 @@ def add_last(data, new_vals):
     print("CX", x_test_new.shape)
     return x_test_new
 
-def map_forecast_recursive(model: keras.Model, x_test: np.array, horizonte: int):
+def map_forecast_recursive(model: keras.Model, x_test: np.array, horizonte: int, batch_size = 4):
     x_aux = x_test
     total_preds = []
     for i in range(horizonte):
-        predictions = model.predict((x_aux[:,0],x_aux[:,1], x_aux[:,2], x_aux[:,3], x_aux[:,4], x_aux[:,5], x_aux[:,6], x_aux[:,7], x_aux[:,8]), batch_size= 2)
+        tests = []
+        for w in range(x_test.shape[1]):
+            tests.append(x_test[:, w])
+        tests = tuple(tests)
+        predictions = model.predict(tests, batch_size = batch_size)
+        #predictions = model.predict((x_aux[:,0],x_aux[:,1], x_aux[:,2], x_aux[:,3], x_aux[:,4], x_aux[:,5], x_aux[:,6], x_aux[:,7], x_aux[:,8]), batch_size= 2)
         #predictions = model.predict((x_aux[:,0],x_aux[:,1], x_aux[:,2], x_aux[:,3], x_aux[:,4], x_aux[:,5], x_aux[:,6]), batch_size= 2)
         total_preds.append(predictions)
         x_aux = add_last(x_aux, predictions[:])
@@ -58,14 +63,131 @@ def map_forecast_recursive(model: keras.Model, x_test: np.array, horizonte: int)
     print(total_preds.shape)
     return total_preds
 
+def model_tesis_1(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers.append(keras.layers.Conv2D(16, (5,5), padding= "same", activation= "relu")(inp))
+    m = keras.layers.concatenate(multi_cnn_layers)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+def model_tesis_2(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers.append(keras.layers.Conv2D(32, (5,5), padding= "same", activation= "relu")(inp))
+    m = keras.layers.concatenate(multi_cnn_layers)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+def model_tesis_3(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers.append(keras.layers.Conv2D(64, (5,5), padding= "same", activation= "relu")(inp))
+    m = keras.layers.concatenate(multi_cnn_layers)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+def model_tesis_4(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers_1 = []
+    multi_cnn_layers_2 = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers_1.append(keras.layers.Conv2D(64, (5,5), padding= "same", activation= "relu")(inp))
+    for layer in multi_cnn_layers_1:
+        multi_cnn_layers_2.append(keras.layers.Conv2D(32, (5,5), padding= "same", activation= "relu")(layer))
+    m = keras.layers.concatenate(multi_cnn_layers_2)
+    
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+def model_tesis_5(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers_1 = []
+    multi_cnn_layers_2 = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers_1.append(keras.layers.Conv2D(64, (5,5), padding= "same", activation= "relu")(inp))
+    for layer in multi_cnn_layers_1:
+        multi_cnn_layers_2.append(keras.layers.Conv2D(32, (5,5), padding= "same", activation= "relu")(layer))
+    m = keras.layers.concatenate(multi_cnn_layers_2)
+    m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+def model_tesis_6(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers_1 = []
+    multi_cnn_layers_2 = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers_1.append(keras.layers.Conv2D(16, (5,5), padding= "same", activation= "relu")(inp))
+    for layer in multi_cnn_layers_1:
+        multi_cnn_layers_2.append(keras.layers.Conv2D(16, (5,5), padding= "same", activation= "relu")(layer))
+    m = keras.layers.concatenate(multi_cnn_layers_2)
+    m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+def model_tesis_7(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers_1 = []
+    multi_cnn_layers_2 = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers_1.append(keras.layers.Conv2D(64, (5,5), padding= "same", activation= "relu")(inp))
+    for layer in multi_cnn_layers_1:
+        multi_cnn_layers_2.append(keras.layers.Conv2D(32, (5,5), padding= "same", activation= "relu")(layer))
+    m = keras.layers.concatenate(multi_cnn_layers_2)
+    m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(8, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(4, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+def model_tesis_8(window, d_shape, channels):
+    inputs = []
+    multi_cnn_layers_1 = []
+    multi_cnn_layers_2 = []
+    multi_cnn_layers_3 = []
+    for w in range(window):
+        inputs.append(keras.layers.Input(shape=d_shape))
+    for inp in inputs:
+        multi_cnn_layers_1.append(keras.layers.Conv2D(64, (5,5), padding= "same", activation= "relu")(inp))
+    for layer in multi_cnn_layers_1:
+        multi_cnn_layers_2.append(keras.layers.Conv2D(32, (5,5), padding= "same", activation= "relu")(layer))
+    for layer in multi_cnn_layers_2:
+        multi_cnn_layers_3.append(keras.layers.Conv2D(16, (3,3), padding= "same", activation= "relu")(layer))
+    m = keras.layers.concatenate(multi_cnn_layers_3)
+    m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(8, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+    return m, inputs
+
+
 def main(config_file, load_and_forecast=False, model_name='', display= False):
     config_json = read_json_file(config_file)
     window = config_json['window_size']
     rows = config_json['rows']
     cols = config_json['cols']
     channels = config_json['channels']
+    batch_size = config_json['batch_size']
     horizon = config_json['horizon']
-    name = config_json['name'] + '_model_testing_{}'.format(int(time.time()))
+    name = config_json['name'] + '_MultiCNN_model_testing_{}'.format(int(time.time()))
     optimizer = config_json['optimizer']
     data_name = '{}/{}.npy'.format(config_json['folder_models_save'], config_json['folder'])
     early_stopping_value = config_json['deep_training_early_stopping_patience']
@@ -77,7 +199,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     #cols = 640
     categories = np.array([0,35,70,119,177,220,255])
     #horizon = 12
-    name = 'Model_MultiCNN_testing_{}'.format(int(time.time()))
+    #name = 'Model_MultiCNN_testing_{}'.format(int(time.time()))
 
     preprocess = Preprocessing()
     preprocess.load_from_numpy_array(data_name, rows, cols, channels)
@@ -134,8 +256,8 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     with strategy.scope():
         print(x_train.shape)
         print(x_train[:,0].shape, x_train[:,1].shape)
-        d_shape = x_train.shape[2:]
-        inp = keras.layers.Input(shape=(x_train.shape[2:]))
+        d_shape = (x_train.shape[2:])
+        """inp = keras.layers.Input(shape=(x_train.shape[2:]))
         inp2 = keras.layers.Input(shape=(x_train.shape[2:]))
         inp3 = keras.layers.Input(shape=(x_train.shape[2:]))
         inp4 = keras.layers.Input(shape=(x_train.shape[2:]))
@@ -173,10 +295,12 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
         m = keras.layers.Conv2D(32, (3,3), padding="same", activation= "relu")(m)
         m = keras.layers.Conv2D(16, (3,3), padding="same", activation= "relu")(m)
         m = keras.layers.Conv2D(16, (3,3), padding="same", activation= "relu")(m)
-        m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
+        m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)"""
 
-        model = keras.models.Model([inp, inp2, inp3, inp4, inp5, inp6, inp7, inp8, inp9], m)
+        #model = keras.models.Model([inp, inp2, inp3, inp4, inp5, inp6, inp7, inp8, inp9], m)
         #model = keras.models.Model([inp, inp2, inp3, inp4, inp5, inp6, inp7], m)
+        m, inputs = model_tesis_6(window-1, d_shape, channels)
+        model = keras.models.Model(inputs, m)
         model.compile(loss= 'mae', optimizer= 'Adam')
 
         print(model.summary())
@@ -186,15 +310,23 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
 
         board = TensorBoard(log_dir= 'logs/{}'.format(name))
 
-        t = (x_train[:,0], x_train[:,1], x_train[:,2], x_train[:,3], x_train[:,4], x_train[:,5], x_train[:,6], x_train[:,7], x_train[:,8])
-        v = (x_validation[:,0], x_validation[:,1], x_validation[:,2], x_validation[:,3], x_validation[:,4], x_validation[:,5], x_validation[:,6], x_validation[:,7], x_validation[:,8])
+        t = []
+        v = []
+        for w in range(window-1):
+            t.append(x_train[:, w])
+            v.append(x_validation[:, w])
+        t = tuple(t)
+        v = tuple(v)
+        
+        #t = (x_train[:,0], x_train[:,1], x_train[:,2], x_train[:,3], x_train[:,4], x_train[:,5], x_train[:,6], x_train[:,7], x_train[:,8])
+        #v = (x_validation[:,0], x_validation[:,1], x_validation[:,2], x_validation[:,3], x_validation[:,4], x_validation[:,5], x_validation[:,6], x_validation[:,7], x_validation[:,8])
         #t = (x_train[:,0], x_train[:,1], x_train[:,2], x_train[:,3], x_train[:,4], x_train[:,5], x_train[:,6])
         #v = (x_validation[:,0], x_validation[:,1], x_validation[:,2], x_validation[:,3], x_validation[:,4], x_validation[:,5], x_validation[:,6])
 
         model.fit(
             t, 
             y_train,
-            batch_size = 4,
+            batch_size = batch_size,
             epochs = 150,
             validation_data= (v, y_validation),
             callbacks= [early_stopping, reduce_lr]
@@ -206,7 +338,12 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
         for _ in range(horizon):
             example = example.reshape(1, *example.shape[:])
             print(example.shape)
-            new_prediction = model.predict((example[:,0], example[:,1], example[:,2], example[:,3], example[:,4], example[:,5], example[:,6], example[:,7], example[:,8]))
+            exa = []
+            for w in range(window-1):
+                exa.append(example[:, w])
+            exa = tuple(exa)
+            new_prediction = model.predict(exa, batch_size = batch_size)
+            #new_prediction = model.predict((example[:,0], example[:,1], example[:,2], example[:,3], example[:,4], example[:,5], example[:,6], example[:,7], example[:,8]))
             #new_prediction = model.predict((example[:,0], example[:,1], example[:,2], example[:,3], example[:,4], example[:,5], example[:,6]))
             example = example.reshape(example.shape[1:])
             example = np.concatenate((example[1:], new_prediction), axis=0)
@@ -229,7 +366,13 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
 
         print(x_test.shape)
 
-        err = model.evaluate((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6], x_test[:,7], x_test[:,8]), y_test, batch_size= 2)
+        tests = []
+        for w in range(window-1):
+            tests.append(x_test[:, w])
+        tests = tuple(tests)
+
+        err = model.evaluate(tests, y_test, batch_size = batch_size)
+        #err = model.evaluate((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6], x_test[:,7], x_test[:,8]), y_test, batch_size= 2)
         #err = model.evaluate((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6]), y_test, batch_size= 2)
         print("El error del modelo es: {}".format(err))
         """preds = model.predict((x_test[:,0],x_test[:,1], x_test[:,2], x_test[:,3], x_test[:,4], x_test[:,5], x_test[:,6], x_test[:,7], x_test[:,8]), batch_size= 2)
