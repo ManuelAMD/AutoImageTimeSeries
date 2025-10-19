@@ -76,12 +76,16 @@ horizon = 12
 #original = np.load("Models/DiferencesOriginal4.npy")
 
 #Mejor Sequia Recursiva
-forecasts = np.load("Models/DiferencesForecast10DroughtDataset_model_testing_1759339807.npy")
-original = np.load("Models/DiferencesOriginal10.npy")
+#forecasts = np.load("Models/DiferencesForecast10DroughtDataset_model_testing_1759339807.npy")
+#original = np.load("Models/DiferencesOriginal10.npy")
 
 #Mejor Sequia Directa
 #forecasts = np.load("Models/DiferencesForecast3DroughtDataset_model_testing_1760644102.npy")
 #original = np.load("Models/DiferencesOriginal3.npy")
+
+#Mejor SPI ConvLSTM
+forecasts = np.load("Models/DiferencesForecast5SPIDataset_model_testing_1759392299.npy")
+original = np.load("Models/DiferencesOriginal5.npy")
 
 #original = np.load("Models/DiferencesOriginal6.npy")
 #original = np.load("Models/DiferencesOriginal12.npy")
@@ -126,9 +130,10 @@ for i in range(len(original)):
     #Tesis
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaConvLSTM_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaMultiCNN_t+{}.png".format(i), result)
-    cv2.imwrite("GeneratedImageComparation/DifferenceSequiaViViT_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaViViT_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaRecursiva_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaDirecta_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceSPIConvLSTM_t+{}.png".format(i), result)
 
 
 """for i in range(len(original)):
