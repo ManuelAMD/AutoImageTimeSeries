@@ -85,24 +85,32 @@ horizon = 12
 #original = np.load("Models/DiferencesOriginal3.npy")
 
 #Mejor SPI ConvLSTM
-forecasts = np.load("Models/DiferencesForecast5SPIDataset_model_testing_1759392299.npy")
-original = np.load("Models/DiferencesOriginal5.npy")
-naive = np.load("Models/DiferencesNaive5.npy")
+#forecasts = np.load("Models/DiferencesForecast5SPIDataset_model_testing_1759392299.npy")
+#original = np.load("Models/DiferencesOriginal5.npy")
+#naive = np.load("Models/DiferencesNaive5.npy")
+
+#Mejor Sequia Fragmentación
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1745413473.npy")
+#original = np.load("Models/DiferencesOriginal6.npy")
+
+#Mejor Sequia Codificación
+forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747913078.npy")
+original = np.load("Models/DiferencesOriginal6.npy")
 
 #original = np.load("Models/DiferencesOriginal6.npy")
 #original = np.load("Models/DiferencesOriginal12.npy")
 #naive = np.load("Models/DiferencesNaive6.npy")
 
-naive = naive.reshape(naive.shape[:-1])
+#naive = naive.reshape(naive.shape[:-1])
 original = original.reshape(original.shape[:-1])
 forecasts = forecasts.reshape(forecasts.shape[:-1])
 
 forecasts = np.stack((forecasts,)*3, axis=-1)
 original = np.stack((original,)*3, axis=-1)
-naive = np.stack((naive,)*3, axis=-1)
+#naive = np.stack((naive,)*3, axis=-1)
 
 print("Datos procesados para comparar imágenes")
-print(naive.shape)
+#print(naive.shape)
 print(original.shape)
 print(forecasts.shape)
 
@@ -135,9 +143,11 @@ for i in range(len(original)):
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaViViT_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaRecursiva_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaDirecta_t+{}.png".format(i), result)
-    cv2.imwrite("GeneratedImageComparation/DifferenceSPIConvLSTM_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceSPIConvLSTM_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceFragmentationConvLSTM_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceCodificationConvLSTM_t+{}.png".format(i), result)
 
-
+"""
 for i in range(len(original)):
     diff = 255 - cv2.absdiff(naive[i], original[i])
     
@@ -150,4 +160,4 @@ for i in range(len(original)):
 
     #cv2.imshow('diff', result)
     #cv2.waitKey()
-    cv2.imwrite("GeneratedImageComparation/DifferenceTesisSPINaive_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceTesisSPINaive_t+{}.png".format(i), result)"""
