@@ -45,7 +45,7 @@ horizon = 12
 
 #Forecasting strategies  
 #Recursive
-forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753960290.npy")
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753960290.npy")
 
 #Direct
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753344963.npy")
@@ -63,7 +63,27 @@ forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753
 #forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1753713755.npy")
 #forecasts = np.load("Models/DiferencesForecast12DroughtDataset_model_testing_1753879301.npy")
 
-original = np.load("Models/DiferencesOriginal6.npy")
+#Mejor Sequia ConvLSTM
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1731702460.npy")
+#original = np.load("Models/DiferencesOriginal6.npy")
+
+#Mejor Sequia Multi-CNN
+#forecasts = np.load("Models/DiferencesForecast5DroughtDataset_MultiCNN_model_testing_1759972843.npy")
+#original = np.load("Models/DiferencesOriginal5.npy")
+
+#Mejor Sequia ViViT
+#forecasts = np.load("Models/DiferencesForecast4DroughtDataset_model_testing_1760123802.npy")
+#original = np.load("Models/DiferencesOriginal4.npy")
+
+#Mejor Sequia Recursiva
+forecasts = np.load("Models/DiferencesForecast10DroughtDataset_model_testing_1759339807.npy")
+original = np.load("Models/DiferencesOriginal10.npy")
+
+#Mejor Sequia Directa
+#forecasts = np.load("Models/DiferencesForecast3DroughtDataset_model_testing_1760644102.npy")
+#original = np.load("Models/DiferencesOriginal3.npy")
+
+#original = np.load("Models/DiferencesOriginal6.npy")
 #original = np.load("Models/DiferencesOriginal12.npy")
 #naive = np.load("Models/DiferencesNaive6.npy")
 
@@ -97,11 +117,19 @@ for i in range(len(original)):
     #cv2.imwrite("GeneratedImageComparation/DifferenceNoReductionArticulo_Sahir_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceFragmentation6Articulo_Sahir_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceCodification2Articulo_Sahir_t+{}.png".format(i), result)
-    cv2.imwrite("GeneratedImageComparation/DifferenceRecursiveArticulo_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceRecursiveArticulo_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceDirectArticulo_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceMIMOArticulo_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceDirRecArticulo_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceDIRMOArticulo_t+{}.png".format(i), result)
+
+    #Tesis
+    #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaConvLSTM_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaMultiCNN_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceSequiaViViT_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaRecursiva_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaDirecta_t+{}.png".format(i), result)
+
 
 """for i in range(len(original)):
     diff = 255 - cv2.absdiff(naive[i], original[i])
