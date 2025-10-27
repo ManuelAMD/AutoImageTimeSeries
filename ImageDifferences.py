@@ -68,8 +68,8 @@ horizon = 12
 #original = np.load("Models/DiferencesOriginal6.npy")
 
 #Mejor Sequia Multi-CNN
-#forecasts = np.load("Models/DiferencesForecast5DroughtDataset_MultiCNN_model_testing_1759972843.npy")
-#original = np.load("Models/DiferencesOriginal5.npy")
+forecasts = np.load("Models/DiferencesForecast5DroughtDataset_MultiCNN_model_testing_1759972843.npy")
+original = np.load("Models/DiferencesOriginal5.npy")
 
 #Mejor Sequia ViViT
 #forecasts = np.load("Models/DiferencesForecast4DroughtDataset_model_testing_1760123802.npy")
@@ -94,8 +94,8 @@ horizon = 12
 #original = np.load("Models/DiferencesOriginal6.npy")
 
 #Mejor Sequia Codificación
-forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747913078.npy")
-original = np.load("Models/DiferencesOriginal6.npy")
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747913078.npy")
+#original = np.load("Models/DiferencesOriginal6.npy")
 
 #original = np.load("Models/DiferencesOriginal6.npy")
 #original = np.load("Models/DiferencesOriginal12.npy")
@@ -139,13 +139,13 @@ for i in range(len(original)):
 
     #Tesis
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaConvLSTM_t+{}.png".format(i), result)
-    #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaMultiCNN_t+{}.png".format(i), result)
+    cv2.imwrite("GeneratedImageComparation/DifferenceSequiaMultiCNN_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaViViT_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaRecursiva_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaDirecta_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSPIConvLSTM_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceFragmentationConvLSTM_t+{}.png".format(i), result)
-    cv2.imwrite("GeneratedImageComparation/DifferenceCodificationConvLSTM_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceCodificationConvLSTM_t+{}.png".format(i), result)
 
 """
 for i in range(len(original)):
