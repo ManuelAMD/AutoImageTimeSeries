@@ -98,8 +98,8 @@ original = np.load("Models/DiferencesOriginal6.npy")
 #original = np.load("Models/DiferencesOriginal6.npy")
 
 #Mejor Sequia Codificación
-forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747913078.npy")
-original = np.load("Models/DiferencesOriginal6.npy")
+#forecasts = np.load("Models/DiferencesForecast6DroughtDataset_model_testing_1747913078.npy")
+#original = np.load("Models/DiferencesOriginal6.npy")
 
 #original = np.load("Models/DiferencesOriginal6.npy")
 #original = np.load("Models/DiferencesOriginal12.npy")
@@ -149,7 +149,7 @@ for i in range(len(original)):
     #cv2.imwrite("GeneratedImageComparation/DifferenceSequiaDirecta_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceSPIConvLSTM_t+{}.png".format(i), result)
     #cv2.imwrite("GeneratedImageComparation/DifferenceFragmentationConvLSTM_t+{}.png".format(i), result)
-    cv2.imwrite("GeneratedImageComparation/DifferenceCodificationConvLSTM_t+{}.png".format(i), result)
+    #cv2.imwrite("GeneratedImageComparation/DifferenceCodificationConvLSTM_t+{}.png".format(i), result)
 
 """
 for i in range(len(original)):
