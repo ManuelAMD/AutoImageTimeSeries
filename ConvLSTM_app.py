@@ -15,6 +15,12 @@ from tqdm import tqdm
 from mapPreprocessing import Preprocessing
 from app.common.color_tools import *
 
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+    print("{} GPUs detectadas y configuradas".format(len(gpus)))
+
 class CustomCallback(Callback):
     def __init__(self, model, x_test):
         self.model = model
@@ -25,6 +31,70 @@ class CustomCallback(Callback):
         plt.figure(figsize=(10,10))
         plt.imshow(y_pred[0], cmap='gray')
         plt.show()
+    
+    def get_memory_usage():
+        info = tf.config.experimental.get_memory_info()
+
+class MemoryMonitor(Callback):
+    def __init__(self):
+        self.static_memory = {}
+        self.peak_memory = {}
+        self.dynamic_memory = {}
+
+    def _get_memory_info(self):
+        usage = {}
+        gpus = tf.config.list_physical_devices('GPU')
+        for gpu in gpus:
+            device_name = gpu.name.split(':')[-2] + ':' + gpu.name.split(':')[-1]
+            try:
+                memory_info = tf.config.experimental.get_memory_info(device_name)
+                usage[device_name] = {
+                    'current': memory_info['current'] / (1024 ** 3),
+                    'peak': memory_info['peak'] / (1024 ** 3)
+                }
+            except ValueError:
+                pass
+        return usage
+    
+    def on_train_begin(self, logs= None):
+        current_usage = self._get_memory_info()
+        print("-- Línea Base de memoria (memoria estática) --")
+        for gpu, info in current_usage.items():
+            self.static_memory[gpu] = info['current']
+            print(f"{gpu}: {self.static_memory[gpu]:.4f} GB (ocupado por pesos + framework)")
+        
+        #Reset el contador pico para medir lo que ocurre en el entrenamiento
+        for gpu in tf.config.list_physical_devices('CPU'):
+            device_name = gpu.name.split(':')[-2] + ':' + gpu.name.split(':')[-1]
+            try:
+                tf.config.experimental.reset_memory_stats(device_name)
+            except:
+                pass
+    
+    def on_train_batch_end(self, batch, logs=None):
+        #Se monitorea cada cierto tiempo
+        if batch % 3 == 0:
+            current_usage = self._get_memory_info()
+
+            for gpu, info in current_usage.items():
+                self.peak_memory[gpu] = info['peak']
+                #Calculo de memoria dinámica (pico máximo - estática inicial)
+                static = self.static_memory.get(gpu, 0)
+                dynamic = info['peak'] - static
+                self.dynamic_memory[gpu] = dynamic
+    
+    def on_train_end(self, logs=None):
+        print("-- USO completo de memoria --")
+        for gpu in self.static_memory.keys():
+            static = self.static_memory[gpu]
+            peak = self.peak_memory.get(gpu, 0)
+            dynamic = self.dynamic_memory.get(gpu, 0)
+            
+            print(f"Dispositivo: {gpu}")
+            print(f"1.- Memoria estática (Modelo):          {static:.4f} GB")
+            print(f"2.- Memoria dinámica (Activaciones):    {dynamic:4f} GB")
+            print(f"3.- Pico total alcanzado:               {peak:.4f}   GB")
+            print("-"*30)
 
 def clean_memory():
     """ Release unused memory resources. Force garbage collection """
@@ -206,35 +276,50 @@ def model_multi_step(inp, channels):
     return m
 
 def model_tesis_1(inp, channels):
-    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "sigmoid")(inp)
+    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "sigmoid", dtype="float32")(inp)
     return m
 
 def model_tesis_2(inp, channels):
-    m = keras.layers.ConvLSTM2D(channels, (5,5), padding= "same", activation= "sigmoid")(inp)
+    m = keras.layers.ConvLSTM2D(channels, (5,5), padding= "same", activation= "sigmoid", dtype="float32")(inp)
     return m
 
 def model_tesis_3(inp, channels):
     m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(inp)
-    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid", dtype="float32")(m)
     return m
 
 def model_tesis_4(inp, channels):
     m = keras.layers.ConvLSTM2D(32, (3,3), padding= "same", activation= "relu")(inp)
-    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid", dtype="float32")(m)
     return m
 
 def model_tesis_5(inp, channels):
     m = keras.layers.ConvLSTM2D(32, (5,5), padding= "same", activation= "relu")(inp)
-    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
+    m = keras.layers.BatchNormalization()(m)
+    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid", dtype="float32")(m)
     return m
 
+class CheckpointedConvLSTM2D(keras.layers.Layer):
+    def __init__(self, filters, kernel_size, **kwargs):
+        super().__init__()
+        self.inner = keras.layers.ConvLSTM2D(filters, kernel_size, **kwargs)
+
+    def call(self, inputs, training=None):
+        def forward(x):
+            return self.inner(x, training=training)
+        return tf.recompute_grad(forward)(inputs)
+
 def model_tesis_6(inp, channels):
-    m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    #m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    m = CheckpointedConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(32, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    #m = keras.layers.ConvLSTM2D(32, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
+    m = CheckpointedConvLSTM2D(32, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
-    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
-    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(16, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.Conv2D(channels, (3,3), padding= "same", activation= "sigmoid", dtype="float32")(m)
     return m
 
 def model_tesis_7(inp, channels):
@@ -243,40 +328,49 @@ def model_tesis_7(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
-    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "relu")(m)
+    #m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "sigmoid", dtype="float32")(m)
+    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
     return m
 
 def model_tesis_8(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
+    #m = CheckpointedConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(inp)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
+    #m = CheckpointedConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", activation= "relu")(m)
-    m = keras.layers.Conv2D(64, (3,3), activation= "relu", padding= "same")(m)
     m = keras.layers.Conv2D(32, (3,3), activation= "relu", padding= "same")(m)
+    m = keras.layers.Conv2D(16, (3,3), activation= "relu", padding= "same")(m)
     m = keras.layers.Conv2D(channels, (3,3), activation= "sigmoid", padding= "same")(m)
     return m
 
 
 def recursive_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value):
+    #keras.mixed_precision.set_global_policy("mixed_float16")
     inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-    m = model_tesis_4(inp, channels)
+    m = model_tesis_7(inp, channels)
     model = keras.models.Model(inp, m)
+    #opt = keras.optimizers.Adam(learning_rate=0.0001, epsilon=1e-4, clipnorm= 1.0)
+    #opt = keras.mixed_precision.LossScaleOptimizer(opt)
     model.compile(loss = 'mae', optimizer= optimizer)
     #model.compile(loss = 'binary_crossentropy', optimizer= optimizer)
     print(model.summary())
     #Callbacks
     early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
+    memory_monitor = MemoryMonitor()
+    
     board = TensorBoard(log_dir='logs/{}'.format(name))
     epochs = config_json['epochs']
     batch_size = config_json['batch_size']
+    print("Tipo de datos para entrenamiento", x_train.dtype)
     model.fit(
         x_train, y_train,
         batch_size= batch_size,
         epochs = epochs,
         validation_data= (x_validation, y_validation),
-        callbacks = [reduce_lr, early_stopping]
+        callbacks = [reduce_lr, early_stopping, memory_monitor]
     )
     if display:
         example = x_test[np.random.choice(range(len(x_test)), size= 1)[0]]
@@ -372,15 +466,15 @@ def direct_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test
         y_test_actual = y_test[:,h]
         inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
         
-        if h%4 == 0:
-            m = model_multi_step_1(inp, channels)
-        elif h%4 == 1:
-            m = model_multi_step_2(inp, channels)
-        elif h%4 == 2:
-            m = model_multi_step_3(inp, channels)
-        else:
-            m = model_multi_step_4(inp, channels)
-        
+        #if h%4 == 0:
+        #    m = model_multi_step_1(inp, channels)
+        #elif h%4 == 1:
+        #    m = model_multi_step_2(inp, channels)
+        #elif h%4 == 2:
+        #    m = model_multi_step_3(inp, channels)
+        #else:
+        #    m = model_multi_step_4(inp, channels)
+        m = model_tesis_8(inp, channels)
         
         model = keras.models.Model(inp, m)
         model.compile(loss = 'mae', optimizer= optimizer)
@@ -527,6 +621,8 @@ def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, 
     #Callbacks
     early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
+    memory_monitor = MemoryMonitor()
+
     board = TensorBoard(log_dir='logs/{}'.format(name))
     epochs = config_json['epochs']
     #epochs = 10
@@ -537,7 +633,7 @@ def MIMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, 
         batch_size= batch_size,
         epochs = epochs,
         validation_data= (x_validation, y_validation),
-        callbacks = [reduce_lr, early_stopping]
+        callbacks = [reduce_lr, early_stopping, memory_monitor]
     )
     #K.clear_session()
 
@@ -729,7 +825,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     #For direct, MIMO, DirRec, DIRMO
     #x_train, y_train, x_validation, y_validation, x_test, y_test = preprocess.create_STI_multi_output(window, horizon)
 
-    
+    start_time = time.time()
     strategy = tf.distribute.MirroredStrategy()
     #strategy = tf.distribute.OneDeviceStrategy(device='/GPU:0')
     with strategy.scope():
@@ -760,6 +856,9 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
         #DIRMO strategy
         #DIRMO_strategy(x_train, y_train, x_validation, y_validation, x_test, y_test, name, display, horizon, channels, optimizer, config_json, early_stopping_value, prediction_batch=4)
 
+    processing_time = time.time() - start_time
+    print(f"Elapsed Time: {processing_time:.4f}")
+
 
 if __name__ == '__main__':
-    main('Conv-LSTM_spi.json', display=True)
+    main('Conv-LSTM_1.json', display=True)

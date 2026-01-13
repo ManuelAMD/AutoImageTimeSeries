@@ -157,7 +157,7 @@ def vivit_params_tesis_7():
 def vivit_params_tesis_8():
    return (2,16,16), 64, 12, 10
 
-PATCH_SIZE, PROJECTION_DIM, NUM_HEADS, NUM_LAYERS = vivit_params_tesis_8()
+PATCH_SIZE, PROJECTION_DIM, NUM_HEADS, NUM_LAYERS = vivit_params_tesis_4()
 
 #TUBELET EMBEDDING
 #PATCH_SIZE = (4, 4, 12)
@@ -217,7 +217,7 @@ def vivit_cnn_tesis_3(prev):
 def vivit_cnn_tesis_4(prev):
     m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
     m = keras.layers.Lambda(resize_dims)(m)
-    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(32, kernel_size = (5,5), padding='same', activation='relu')(m)
     m = layers.Conv2D(16, kernel_size = (3,3), padding='same', activation='relu')(m)
     m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
     return m
@@ -225,7 +225,7 @@ def vivit_cnn_tesis_4(prev):
 def vivit_cnn_tesis_5(prev):
     m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
     m = keras.layers.Lambda(resize_dims)(m)
-    m = layers.Conv2D(64, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(m)
     m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
     m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
     return m
@@ -233,8 +233,8 @@ def vivit_cnn_tesis_5(prev):
 def vivit_cnn_tesis_6(prev):
     m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
     m = keras.layers.Lambda(resize_dims)(m)
-    m = layers.Conv2D(64, kernel_size = (3,3), padding='same', activation='relu')(m)
-    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(m)
+    m = layers.Conv2D(32, kernel_size = (5,5), padding='same', activation='relu')(m)
     m = layers.Conv2D(16, kernel_size = (3,3), padding='same', activation='relu')(m)
     m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
     return m
@@ -242,8 +242,8 @@ def vivit_cnn_tesis_6(prev):
 def vivit_cnn_tesis_7(prev):
     m = layers.Conv2DTranspose(1, (3,3), strides= (3,3), padding='same', activation='relu')(prev)
     m = keras.layers.Lambda(resize_dims)(m)
-    m = layers.Conv2D(32, kernel_size = (3,3), padding='same', activation='relu')(m)
-    m = layers.Conv2D(16, kernel_size = (3,3), padding='same', activation='relu')(m)
+    m = layers.Conv2D(32, kernel_size = (5,5), padding='same', activation='relu')(m)
+    m = layers.Conv2D(16, kernel_size = (5,5), padding='same', activation='relu')(m)
     m = layers.Conv2D(8, kernel_size = (3,3), padding='same', activation='relu')(m)
     m = layers.Conv2D(1, (3, 3), padding='same', activation='sigmoid')(m)
     return m
@@ -329,7 +329,7 @@ def video_transformer(
   #representation = layers.Reshape((600, 64, 1))(representation)
   #Model_testing_4
   #w=4, 5, 6, 7
-  #representation = layers.Reshape((154, 128, 1))(representation)
+  representation = layers.Reshape((154, 128, 1))(representation)
   #w=8, 9, 10
   #representation = layers.Reshape((308, 128, 1))(representation)
 
@@ -366,7 +366,7 @@ def video_transformer(
   #w=6, 7 
   #representation = layers.Reshape((462, 64, 1))(representation)
   #w=8, 9
-  representation = layers.Reshape((616, 64, 1))(representation)
+  #representation = layers.Reshape((616, 64, 1))(representation)
   #w=10 -154
   #representation = layers.Reshape((770, 64, 1))(representation)
 
@@ -376,7 +376,7 @@ def video_transformer(
   #representation = layers.Conv2D(1, kernel_size = (3,3), strides=(2,1), padding='same', activation='relu')(representation)
 
 
-  m = vivit_cnn_tesis_8(representation)
+  m = vivit_cnn_tesis_4(representation)
 
   
   #representation = layers.Conv2D(64, kernel_size = (5,5), padding='same', activation='relu')(representation)

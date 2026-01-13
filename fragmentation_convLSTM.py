@@ -9,6 +9,12 @@ import json
 import time
 from mapPreprocessing import Preprocessing
 
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+    print("{} GPUs detectadas y configuradas".format(len(gpus)))
+
 class CustomCallback(Callback):
     def __init__(self, model, x_test):
         self.model = model
@@ -19,6 +25,67 @@ class CustomCallback(Callback):
         plt.figure(figsize=(10,10))
         plt.imshow(y_pred[0], cmap='gray')
         plt.show()
+
+class MemoryMonitor(Callback):
+    def __init__(self):
+        self.static_memory = {}
+        self.peak_memory = {}
+        self.dynamic_memory = {}
+
+    def _get_memory_info(self):
+        usage = {}
+        gpus = tf.config.list_physical_devices('GPU')
+        for gpu in gpus:
+            device_name = gpu.name.split(':')[-2] + ':' + gpu.name.split(':')[-1]
+            try:
+                memory_info = tf.config.experimental.get_memory_info(device_name)
+                usage[device_name] = {
+                    'current': memory_info['current'] / (1024 ** 3),
+                    'peak': memory_info['peak'] / (1024 ** 3)
+                }
+            except ValueError:
+                pass
+        return usage
+    
+    def on_train_begin(self, logs= None):
+        current_usage = self._get_memory_info()
+        print("-- Línea Base de memoria (memoria estática) --")
+        for gpu, info in current_usage.items():
+            self.static_memory[gpu] = info['current']
+            print(f"{gpu}: {self.static_memory[gpu]:.4f} GB (ocupado por pesos + framework)")
+        
+        #Reset el contador pico para medir lo que ocurre en el entrenamiento
+        for gpu in tf.config.list_physical_devices('CPU'):
+            device_name = gpu.name.split(':')[-2] + ':' + gpu.name.split(':')[-1]
+            try:
+                tf.config.experimental.reset_memory_stats(device_name)
+            except:
+                pass
+    
+    def on_train_batch_end(self, batch, logs=None):
+        #Se monitorea cada cierto tiempo
+        if batch % 3 == 0:
+            current_usage = self._get_memory_info()
+
+            for gpu, info in current_usage.items():
+                self.peak_memory[gpu] = info['peak']
+                #Calculo de memoria dinámica (pico máximo - estática inicial)
+                static = self.static_memory.get(gpu, 0)
+                dynamic = info['peak'] - static
+                self.dynamic_memory[gpu] = dynamic
+    
+    def on_train_end(self, logs=None):
+        print("-- USO completo de memoria --")
+        for gpu in self.static_memory.keys():
+            static = self.static_memory[gpu]
+            peak = self.peak_memory.get(gpu, 0)
+            dynamic = self.dynamic_memory.get(gpu, 0)
+            
+            print(f"Dispositivo: {gpu}")
+            print(f"1.- Memoria estática (Modelo):          {static:.4f} GB")
+            print(f"2.- Memoria dinámica (Activaciones):    {dynamic:4f} GB")
+            print(f"3.- Pico total alcanzado:               {peak:.4f}   GB")
+            print("-"*30)
 
 def clean_memory():
     """ Release unused memory resources. Force garbage collection """
@@ -62,7 +129,7 @@ def model_1(inp, channels):
     m = keras.layers.ConvLSTM2D(64, (5,5), padding= "same", return_sequences= True, activation= "relu")(m)
     m = keras.layers.BatchNormalization()(m)
     m = keras.layers.ConvLSTM2D(64, (3,3), padding= "same", return_sequences= True, activation= "relu")(m)
-    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "relu")(m)
+    m = keras.layers.ConvLSTM2D(channels, (3,3), padding= "same", activation= "sigmoid")(m)
     return m
 
 def model_2(inp, channels):
@@ -99,7 +166,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
     print(x_train_frags[0].shape)
     print(len(y_train_frags))
     print(y_train_frags[0].shape)
-
+    start_time = time.time()
     for i in range(len(x_train_frags)):
         print("Processing fragment {}".format(i))
         x_train = x_train_frags[i]
@@ -123,7 +190,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
                 return
 
             inp = keras.layers.Input(shape= (None, *x_train.shape[2:]))
-            m = model_2(inp, channels)
+            m = model_1(inp, channels)
 
             model = keras.models.Model(inp, m)
             model.compile(loss = 'mae', optimizer= optimizer)
@@ -133,18 +200,19 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
             #Callbacks
             early_stopping = keras.callbacks.EarlyStopping(monitor= 'val_loss', patience= early_stopping_value, restore_best_weights= True)
             reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor= "val_loss", patience= 3)
+            memory_monitor = MemoryMonitor()
 
             board = TensorBoard(log_dir='logs/{}'.format(name))
 
             epochs = config_json['epochs']
             batch_size = config_json['batch_size']
-
+            print("Tipo de datos para entrenamiento", x_train.dtype)
             model.fit(
                 x_train, y_train,
                 batch_size= batch_size,
                 epochs = epochs,
                 validation_data= (x_validation, y_validation),
-                callbacks = [reduce_lr, early_stopping]
+                callbacks = [reduce_lr, early_stopping, memory_monitor]
             )
             if display:
                 example = x_test[np.random.choice(range(len(x_test)), size= 1)[0]]
@@ -159,6 +227,7 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
                 print(predictions.shape)
         
             err = model.evaluate(x_test, y_test, batch_size= 2)
+            return 
             print("El error del modelo es: {}".format(err))
 
             forecast = map_forecast_recursive(model, x_test, horizon)
@@ -166,6 +235,11 @@ def main(config_file, load_and_forecast=False, model_name='', display= False):
             model.save(forecast_name+'_'+str(i)+'.keras')
             np.save(forecast_name+'_'+str(i)+'.npy', forecast)
             print("Pronósticos almacenados en: {}".format(forecast_name))
+        actual_time = time.time() - start_time
+        print(f"Fragment {i}, actual time: {actual_time:.4f}")
+
+    processing_time = time.time() - start_time
+    print(f"Elapsed Time: {processing_time:.4f}")
 
 if __name__ == '__main__':
     main('Conv-LSTM_1.json')
